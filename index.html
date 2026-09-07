@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="mess-admin.css">
   <link rel="stylesheet" href="profil.css">
   <link rel="stylesheet" href="portal-polish.css">
+  <link rel="stylesheet" href="paginasi.css">
   <script defer src="konfigurasi.js"></script>
   <script defer src="akses.js"></script>
   <script defer src="tracking-store.js"></script>
@@ -23,6 +24,7 @@
   <script defer src="device-store.js"></script>
   <script defer src="skc-store.js"></script>
   <script defer src="tracking-pdf.js"></script>
+  <script defer src="paginasi.js"></script>
   <script defer src="portal.js"></script>
   <script defer src="employees.js"></script>
   <script defer src="devices.js"></script>
@@ -57,12 +59,12 @@
       <a class="nav-item" href="#ht-hp" data-route="ht-hp"><span data-icon="monitor"></span><span>Data Perangkat</span></a>
       <a class="nav-item" href="#mess" data-route="mess"><span data-icon="building"></span><span>Update Data Mess</span></a>
     </nav>
-    <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-haspopup="dialog" aria-label="Buka profil akun"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout>Keluar dari akun</button></div>
+    <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-controls="profile-page" aria-label="Buka Profil dan Pengaturan"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout>Keluar dari akun</button></div>
   </aside>
   <div class="workspace">
     <header class="topbar">
       <div class="topbar-left"><button class="icon-button mobile-only" id="open-menu" type="button" aria-label="Buka menu utama" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span></button><span class="breadcrumb-root">GA Services</span><span class="breadcrumb-separator" aria-hidden="true">/</span><strong id="page-label">Tracking Dokumen</strong></div>
-      <div class="topbar-right"><time id="today"></time><button type="button" class="sync-button" id="refresh-data" title="Muat data terbaru">Muat ulang</button><button type="button" class="mobile-profile" data-open-profile aria-label="Buka profil akun" aria-haspopup="dialog"><span class="account-avatar" data-account-avatar aria-hidden="true"></span></button></div>
+      <div class="topbar-right"><time id="today"></time><button type="button" class="sync-button" id="refresh-data" title="Muat data terbaru">Muat ulang</button><button type="button" class="mobile-profile" data-open-profile aria-label="Buka Profil dan Pengaturan" aria-controls="profile-page"><span class="account-avatar" data-account-avatar aria-hidden="true"></span></button></div>
     </header>
     <main id="main-content" tabindex="-1">
       <section class="tracking-page" id="tracking-page" aria-labelledby="tracking-title">
@@ -78,7 +80,7 @@
           <div class="panel-tabs-row"><div class="document-tabs" role="tablist" aria-label="Kelompok dokumen"><button id="tab-active" class="document-tab active" role="tab" aria-selected="true" aria-controls="document-results" type="button" data-tab="active">Aktif <span id="active-count">0</span></button><button id="tab-done" class="document-tab" role="tab" aria-selected="false" aria-controls="document-results" tabindex="-1" type="button" data-tab="done">Selesai <span id="done-count">0</span></button><button id="tab-skc" class="document-tab" role="tab" aria-selected="false" aria-controls="skc-panel" tabindex="-1" type="button" data-tab="skc">Ambil SKC <span id="skc-count">0</span></button></div><div class="tracking-list-actions"><span class="list-caption" id="tracking-list-caption">Daftar dokumen</span><button class="button button-secondary" id="download-active-pdf" type="button" disabled><span data-icon="download"></span><span id="download-pdf-label">Unduh PDF</span></button></div></div>
           <div class="filter-bar" id="document-filters"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="search">Cari dokumen</label><input id="search" type="search" placeholder="Cari nama, nomor, atau posisi dokumen…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="filter-bu">Filter BU</label><select id="filter-bu"><option value="">Semua BU</option><option>KPS</option><option>HJF</option><option>OST</option><option>Lainnya</option></select></div><div class="filter-select"><label class="sr-only" for="filter-status">Filter status</label><select id="filter-status"><option value="">Semua status</option></select></div></div>
           <div id="document-results" role="tabpanel" aria-labelledby="tab-active" tabindex="0"><div class="empty-state"><span class="empty-symbol" data-icon="files"></span><h2>Belum ada dokumen aktif</h2><p>Tambahkan dokumen untuk mulai mencatat perjalanan approval.</p><button class="button button-secondary" type="button" data-action="new-document"><span data-icon="plus"></span>Tambah Dokumen</button></div></div>
-          <footer class="table-footer" id="document-footer"><span id="result-count" role="status" aria-live="polite">0 dokumen</span><span class="table-tip">Pilih dokumen untuk melihat riwayat</span></footer><p id="download-pdf-status" class="export-status" role="status" aria-live="polite" hidden></p>
+          <footer class="table-footer" id="document-footer"><span id="result-count" role="status" aria-live="polite">0 dokumen</span><div class="pagination" id="document-pagination" hidden></div></footer><p id="download-pdf-status" class="export-status" role="status" aria-live="polite" hidden></p>
           <div id="skc-panel" role="tabpanel" aria-labelledby="tab-skc" hidden>
             <div class="skc-panel-heading"><h2>Pengambilan SKC</h2><p>Surat keterangan cuti karyawan</p></div>
             <div class="skc-status-tabs" role="tablist" aria-label="Status pengambilan SKC"><button id="skc-tab-pending" type="button" role="tab" aria-selected="true" aria-controls="skc-results" class="skc-status-tab active" data-skc-tab="pending">Belum diambil <span id="skc-pending-count">0</span></button><button id="skc-tab-taken" type="button" role="tab" aria-selected="false" aria-controls="skc-results" tabindex="-1" class="skc-status-tab" data-skc-tab="taken">Sudah diambil <span id="skc-taken-count">0</span></button></div>
@@ -115,6 +117,7 @@
 <progress id="mess-progress" hidden max="100" value="0"></progress><p id="mess-upload-status" role="status" aria-live="polite"></p><p id="mess-upload-error" class="form-error" role="alert" hidden></p>
 </div></section><section class="documents-panel mess-audit" data-super-admin hidden><div class="mess-upload-head"><div><h2>Pencarian mess · 24 jam terakhir</h2><p>Hanya terlihat oleh Super Admin.</p></div><button type="button" class="button button-secondary" id="mess-log-refresh">Muat ulang</button></div><div id="mess-log-results"></div><div class="table-footer"><span id="mess-log-count"></span><button id="mess-log-more" class="button button-secondary" type="button" hidden>Muat berikutnya</button></div></section>
 </section>
+      <section class="tracking-page" id="profile-page" aria-label="Profil dan Pengaturan" hidden></section>
       <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services — halaman asli" src="link-kerja.html" loading="lazy"></iframe></section>
     </main>
   </div>
@@ -180,7 +183,7 @@
 
   <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
     <div class="dialog-heading"><div><p class="dialog-kicker" id="detail-id"></p><h2 id="detail-title">Detail dokumen</h2></div><button class="icon-button" type="button" data-close="detail-dialog" aria-label="Tutup detail dokumen"><span data-icon="close"></span></button></div>
-    <div class="detail-body"><p class="edit-success" id="document-edit-success" role="status" hidden>Data dokumen berhasil diperbarui.</p><div class="detail-status-bar"><span id="detail-status"></span><span class="held-label" id="detail-held"></span></div><section class="current-position" aria-label="Posisi terkini"><span class="position-icon" data-icon="user"></span><div><span>Pemegang saat ini</span><strong id="detail-position"></strong><small id="detail-stage"></small></div></section><div id="detail-fields" class="detail-fields"></div><section class="detail-note"><h3>Note dokumen</h3><p id="detail-note"></p></section><div class="history-heading"><h3>Riwayat perpindahan</h3><span id="history-count"></span></div><div id="history"></div></div>
+    <div class="detail-body"><p class="edit-success" id="document-edit-success" role="status" hidden>Data dokumen berhasil diperbarui.</p><div class="detail-status-bar"><span id="detail-status"></span><span class="held-label" id="detail-held"></span></div><section class="current-position" aria-label="Posisi terkini"><span class="position-icon" data-icon="user"></span><div><span>Pemegang saat ini</span><strong id="detail-position"></strong><small id="detail-stage"></small></div></section><div id="detail-fields" class="detail-fields"></div><section class="detail-note"><h3>Note dokumen</h3><p id="detail-note"></p></section><div class="history-heading"><h3>Riwayat perpindahan</h3><span id="history-count"></span></div><div id="history"></div><div class="pagination history-pagination" id="history-pagination" hidden></div></div>
     <div class="detail-actions document-detail-actions"><button class="button button-secondary" id="edit-document" data-tulis type="button"><span data-icon="edit"></span>Edit Dokumen</button><button class="button button-primary" id="new-movement" data-tulis type="button"><span data-icon="route"></span>Catat Perpindahan</button><p id="completed-message" hidden>Dokumen ini sudah masuk daftar selesai.</p></div>
   </dialog>
 
@@ -208,7 +211,7 @@
 
   <dialog class="detail-dialog" id="device-history-dialog" aria-labelledby="device-history-title">
     <div class="dialog-heading"><div><p class="dialog-kicker" id="device-history-kind"></p><h2 id="device-history-title">Riwayat perangkat</h2><p class="device-subtitle" id="device-history-brand"></p></div><button class="icon-button" type="button" data-close="device-history-dialog" aria-label="Tutup riwayat perangkat"><span data-icon="close"></span></button></div>
-    <div class="detail-body"><div class="device-success" id="device-history-success" role="status" hidden></div><section class="device-holder-card" aria-label="Pemegang saat ini"><span class="position-icon" data-icon="user"></span><div><span class="holder-caption">PEMEGANG SAAT INI</span><strong id="device-history-holder"></strong><small id="device-history-nik"></small></div><span id="device-history-condition"></span></section><div class="device-initial-holder"><span>Pemegang saat pertama dicatat</span><strong id="device-initial-holder"></strong></div><div class="history-heading"><h3>Riwayat serah terima</h3><span id="device-history-count"></span></div><div id="device-history-events"></div></div>
+    <div class="detail-body"><div class="device-success" id="device-history-success" role="status" hidden></div><section class="device-holder-card" aria-label="Pemegang saat ini"><span class="position-icon" data-icon="user"></span><div><span class="holder-caption">PEMEGANG SAAT INI</span><strong id="device-history-holder"></strong><small id="device-history-nik"></small></div><span id="device-history-condition"></span></section><div class="device-initial-holder"><span>Pemegang saat pertama dicatat</span><strong id="device-initial-holder"></strong></div><div class="history-heading"><h3>Riwayat serah terima</h3><span id="device-history-count"></span></div><div id="device-history-events"></div><div class="pagination history-pagination" id="device-history-pagination" hidden></div></div>
     <div class="detail-actions"><button class="button button-primary" id="device-history-transfer" data-tulis type="button"><span data-icon="route"></span>Serah Terima</button></div>
   </dialog>
 

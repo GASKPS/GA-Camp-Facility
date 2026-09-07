@@ -29,7 +29,8 @@
   const $ = id => document.getElementById(id);
   const D = window.TrackingDomain, repository = window.TrackingStore;
   let documents = [], selectedId = null, tab = 'active', toastTimer, editingDocument = null, movementRevision = null;
-  let exportingPdf = false;
+  let exportingPdf = false, documentPage = 1, historyPage = 1, detailDocument = null;
+  const pages = window.Paginasi;
   const e = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const dateText = value => {
     if (!value) return '—';
@@ -75,7 +76,7 @@
   });
   window.matchMedia('(min-width:901px)').addEventListener('change', event => { if (event.matches) toggleMenu(false); });
   function route() {
-    const pages = { tracking: ['tracking-page', 'Tracking Dokumen'], 'link-kerja': ['links-page', 'Link Kerja'], karyawan: ['employees-page', 'Data Karyawan'], 'ht-hp': ['devices-page', 'Data Perangkat'], mess: ['mess-admin-page','Update Data Mess'] };
+    const pages = { tracking: ['tracking-page', 'Tracking Dokumen'], 'link-kerja': ['links-page', 'Link Kerja'], karyawan: ['employees-page', 'Data Karyawan'], 'ht-hp': ['devices-page', 'Data Perangkat'], mess: ['mess-admin-page','Update Data Mess'], profil: ['profile-page', 'Profil & Pengaturan'] };
     const requested = window.location.hash.slice(1);
     const routeName = Object.hasOwn(pages, requested) ? requested : 'tracking';
     Object.entries(pages).forEach(([name, page]) => { $(page[0]).hidden = name !== routeName; });
@@ -102,7 +103,7 @@
   }
   $('move-status').insertAdjacentHTML('beforeend', D.STATUS.map(s => `<option>${e(s)}</option>`).join(''));
   function selectTab(next) {
-    tab = next;
+    tab = next; documentPage = 1;
     document.querySelectorAll('[data-tab]').forEach(button => {
       const selected = button.dataset.tab === tab;
       button.classList.toggle('active', selected); button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
@@ -139,14 +140,16 @@
     const all = tab === 'active' ? active : done, q = $('search').value.trim().toLocaleLowerCase('id-ID'), bu = $('filter-bu').value, st = $('filter-status').value;
     const rows = D.filterDocuments(documents, filters(), tab === 'done');
     $('download-active-pdf').disabled = exportingPdf || tab !== 'active' || !rows.length;
-    $('result-count').textContent = q || bu || st ? `${rows.length} dari ${all.length} dokumen` : `${rows.length} dokumen`;
+    const page = pages.range(rows.length, documentPage); documentPage = page.page;
+    $('result-count').textContent = pages.summary(page) + ((q || bu || st) ? ` · ${all.length} dokumen seluruhnya` : '');
+    pages.render($('document-pagination'), page, next => { documentPage = next; render(); $('document-results').scrollIntoView({block:'start'}); }, false);
     if (!rows.length) {
       if (q || bu || st) $('document-results').innerHTML = empty('Dokumen tidak ditemukan', 'Coba kata kunci lain atau tampilkan semua dokumen.', '<button class="button button-secondary" type="button" data-action="reset-filters">Reset pencarian</button>');
       else if (tab === 'done') $('document-results').innerHTML = empty('Belum ada dokumen selesai', 'Dokumen yang selesai, sudah diambil, atau dibatalkan akan tampil di sini.');
       else $('document-results').innerHTML = empty('Belum ada dokumen aktif', 'Tambahkan dokumen untuk mulai mencatat perjalanan approval.', `<button class="button button-secondary" type="button" data-action="new-document">${icon('plus')}Tambah Dokumen</button>`);
       return;
     }
-    $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.map(doc => {
+    $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.slice(page.start, page.end).map(doc => {
       const held = D.holdDays(doc);
       return `<tr><td data-label="Dokumen"><button class="document-name" type="button" data-document="${e(doc.id)}">${e(doc.namaDokumen)}</button><span class="document-meta">${e(typeText(doc))}${doc.nomorDokumen ? ' · ' + e(doc.nomorDokumen) : ''}</span><span class="document-meta">${e(doc.kode)}</span></td><td data-label="Tanggal masuk" class="date-cell">${e(dateText(doc.tanggalMasuk))}</td><td data-label="BU"><span class="bu-badge">${e(doc.bu)}</span></td><td data-label="Status">${status(doc.statusTerakhir)}</td><td data-label="Posisi sekarang">${e(doc.posisiSekarang)}<span class="secondary-value">${e(doc.tahapanSekarang)}</span></td><td data-label="Lama tertahan"><span class="hold-value ${held > 7 ? 'overdue' : ''}">${held == null ? '—' : held + ' hari'}</span></td><td><button class="detail-row-button" type="button" data-document="${e(doc.id)}" aria-label="Lihat detail ${e(doc.namaDokumen)}">${icon('chevron')}</button></td></tr>`;
     }).join('')}</tbody></table></div>`;
@@ -165,8 +168,8 @@
     } catch (error) { report.textContent = error.message || 'PDF belum dapat dibuat. Coba lagi.'; }
     finally { exportingPdf = false; label.textContent = 'Unduh PDF'; report.hidden = tab !== 'active'; render(); }
   });
-  ['search','filter-bu','filter-status'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', render));
-  function resetFilters() { $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; render(); }
+  ['search','filter-bu','filter-status'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', () => { documentPage = 1; render(); }));
+  function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; render(); }
   function newDocument() {
     if(!Akses.canWrite()) return showToast('Masuk dengan akun admin untuk menambah dokumen.');
     editingDocument = null;
@@ -209,6 +212,7 @@
     finally { button.disabled = false; }
   });
   function renderDetail(doc) {
+    detailDocument = doc; historyPage = 1;
     $('document-edit-success').hidden = true;
     $('detail-id').textContent = doc.kode; $('detail-title').textContent = doc.namaDokumen;
     $('detail-status').innerHTML = status(doc.statusTerakhir);
@@ -217,9 +221,15 @@
     const fields = [['Tanggal masuk', dateText(doc.tanggalMasuk)], ['BU', doc.bu], ['Jenis dokumen', typeText(doc)], ['Nomor dokumen', doc.nomorDokumen || 'Tidak ada nomor'], ['Asal dokumen', doc.asalDokumen], ['Keperluan', doc.keperluan], ['Dibuat oleh', doc.namaPembuat]];
     $('detail-fields').innerHTML = fields.map(([name, value]) => `<dl class="detail-field"><dt>${e(name)}</dt><dd>${e(value)}</dd></dl>`).join('');
     $('detail-note').textContent = doc.noteDokumen || 'Tidak ada catatan.'; $('detail-note').classList.toggle('no-note', !doc.noteDokumen);
-    $('history-count').textContent = `${doc.history.length} perpindahan`;
-    $('history').innerHTML = doc.history.length ? `<ol class="timeline">${[...doc.history].reverse().map(event => `<li class="history-event"><div class="event-heading"><strong>${e(event.tahapan)}</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route"><span>${e(event.posisiSebelum || event.dari)}</span>${icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
+    renderHistory();
     $('new-movement').hidden = D.isFinal(doc.statusTerakhir); $('completed-message').hidden = !D.isFinal(doc.statusTerakhir);
+  }
+  function renderHistory() {
+    const doc = detailDocument; if (!doc) return;
+    const page = pages.range(doc.history.length, historyPage); historyPage = page.page;
+    $('history-count').textContent = `${doc.history.length} perpindahan`;
+    $('history').innerHTML = doc.history.length ? `<ol class="timeline">${[...doc.history].reverse().slice(page.start, page.end).map(event => `<li class="history-event"><div class="event-heading"><strong>${e(event.tahapan)}</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route"><span>${e(event.posisiSebelum || event.dari)}</span>${icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
+    pages.render($('history-pagination'), page, next => { historyPage = next; renderHistory(); $('history').scrollIntoView({block:'start'}); });
   }
   async function showDetail(id) { const doc = await repository.get(id); selectedId = id; renderDetail(doc); openDialog('detail-dialog'); }
   $('new-movement').addEventListener('click', async () => {

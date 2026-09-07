@@ -36,7 +36,7 @@
     doc.addFileToVFS('GA-Regular.ttf', fonts.regular); doc.addFont('GA-Regular.ttf', 'GA', 'normal');
     doc.addFileToVFS('GA-Bold.ttf', fonts.bold); doc.addFont('GA-Bold.ttf', 'GA', 'bold');
     doc.setProperties({ title: 'Tracking Dokumen Aktif', subject: 'Ringkasan posisi terakhir dokumen aktif', creator: 'GA Services', author: 'GA Service Camp & Facility' });
-    const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jayapura', year: 'numeric', month: '2-digit', day: '2-digit' }).format(generatedAt);
+    const day = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jayapura', year: 'numeric', month: 'long', day: '2-digit' }).format(generatedAt).replace(/\s+/g, '_');
     const printed = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jayapura', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(generatedAt) + ' WIT';
     const selected = [filters.query && 'Pencarian: ' + filters.query, filters.bu && 'BU: ' + filters.bu, filters.status && 'Status: ' + filters.status].filter(Boolean).join(' | ') || 'Seluruh dokumen aktif';
     const width = doc.internal.pageSize.getWidth(), height = doc.internal.pageSize.getHeight(), margin = 12;
@@ -59,9 +59,9 @@
       styles: { font: 'GA', fontSize: 8.2, cellPadding: 2.1, overflow: 'linebreak', valign: 'top', textColor: [43, 58, 76], lineColor: [218, 226, 234], lineWidth: 0.15 },
       headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [37, 63, 89], textColor: 255, fontSize: 8 },
       alternateRowStyles: { fillColor: [246, 248, 251] },
-      head: [['No', 'Tanggal masuk', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'BU', 'Status', 'Posisi sekarang', 'Tahapan', 'Lama tertahan (hari)']],
-      body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), text(d.tahapanSekarang), text(D.holdDays(d, day))]),
-      columnStyles: Object.fromEntries([9, 24, 51, 31, 26, 14, 31, 35, 33, 19].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 || i === 9 ? { halign: 'center' } : {}) }])),
+      head: [['No', 'Tanggal masuk', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'BU', 'Status', 'Posisi sekarang', 'Note Perpindahan']],
+      body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), text(d.notePerpindahanTerakhir)]),
+      columnStyles: Object.fromEntries([9, 24, 49, 30, 22, 13, 30, 36, 60].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 ? { halign: 'center' } : {}) }])),
       willDrawPage: header
     });
     const total = doc.getNumberOfPages();
@@ -71,7 +71,7 @@
       doc.text('Posisi terakhir pada saat laporan dibuat', margin, height - 8);
       doc.text('Halaman ' + page + ' dari ' + total, width - margin, height - 8, { align: 'right' });
     }
-    return { doc, count: rows.length, filename: 'Tracking_Dokumen_Aktif_' + day + '.pdf' };
+    return { doc, count: rows.length, filename: 'Tracking_Dokumen_' + day + '.pdf' };
   }
   g.TrackingPDF = Object.freeze({ ready, create });
 })(window);

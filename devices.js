@@ -10,6 +10,8 @@
   };
   document.querySelectorAll('[data-device-resource]').forEach(a => { a.href = resources[a.dataset.deviceResource]; });
   let devices = [], historyId = null, handoverId = null, handoverRevision = null, editingDevice = null, afterReturn = null;
+  let historyPage = 1, historyDevice = null;
+  const pages = window.Paginasi;
   const initialPicker = window.EmployeeUI.createPicker('device-holder', 'Pemegang awal');
   const recipientPicker = window.EmployeeUI.createPicker('handover-recipient', 'Penerima');
   const radioIcon = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="15" rx="2"/><path d="M8 7V2M16 7V4M9 11h6M9 15h6M9 18h3"/></svg>';
@@ -66,6 +68,7 @@
     $(prefix + '-condition').innerHTML = condition(device.kondisi);
   }
   function renderHistory(device) {
+    historyDevice = device; historyPage = 1;
     $('device-history-kind').textContent = typeName(device.jenis).toUpperCase() + ' · RIWAYAT PERANGKAT';
     $('device-history-title').textContent = device.nomor;
     $('device-history-brand').textContent = device.merek;
@@ -73,8 +76,14 @@
     $('device-history-nik').textContent = personNik(device.pemegang);
     $('device-history-condition').innerHTML = condition(device.kondisi);
     $('device-initial-holder').textContent = personLabel(device.pemegangAwal) + (device.pemegangAwal.kind === 'employee' ? ` · ${personNik(device.pemegangAwal)}` : '');
+    renderHistoryEvents();
+  }
+  function renderHistoryEvents() {
+    const device = historyDevice; if (!device) return;
+    const page = pages.range(device.history.length, historyPage); historyPage = page.page;
     $('device-history-count').textContent = `${device.history.length} perpindahan`;
-    $('device-history-events').innerHTML = device.history.length ? `<ol class="timeline">${[...device.history].reverse().map((event, index) => `<li class="history-event"><div class="event-heading"><strong>Serah terima ${device.history.length - index}</strong><time datetime="${e(event.tanggal)}">${e(dateText(event.tanggal))}</time></div><div class="device-event-route"><div>${e(personLabel(event.dari))}${event.dari.kind === 'employee' ? `<small>${e(personNik(event.dari))}</small>` : ''}</div>${icon('arrow')}<div>${e(personLabel(event.kepada))}${event.kepada.kind === 'employee' ? `<small>${e(personNik(event.kepada))}</small>` : ''}</div></div><small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.catatan ? `<p class="event-note">${e(event.catatan)}</p>` : ''}<div class="device-event-footer">${condition(event.kondisi)}${event.buktiUrl ? `<a class="device-proof-button" href="${e(domain.proofUrl(event.buktiUrl))}" target="_blank" rel="noopener noreferrer" aria-label="Lihat bukti serah terima ${e(dateText(event.tanggal))}">${icon('file')}Lihat Bukti <span aria-hidden="true">↗</span></a>` : '<span class="device-no-proof">Bukti tidak dilampirkan</span>'}</div></li>`).join('')}</ol>` : '<p class="history-empty">Belum ada serah terima. Perangkat masih pada pemegang awal yang dicatat.</p>';
+    $('device-history-events').innerHTML = device.history.length ? `<ol class="timeline">${[...device.history].reverse().slice(page.start, page.end).map(event => `<li class="history-event"><div class="event-heading"><strong>Serah terima ${event.urutan}</strong><time datetime="${e(event.tanggal)}">${e(dateText(event.tanggal))}</time></div><div class="device-event-route"><div>${e(personLabel(event.dari))}${event.dari.kind === 'employee' ? `<small>${e(personNik(event.dari))}</small>` : ''}</div>${icon('arrow')}<div>${e(personLabel(event.kepada))}${event.kepada.kind === 'employee' ? `<small>${e(personNik(event.kepada))}</small>` : ''}</div></div><small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.catatan ? `<p class="event-note">${e(event.catatan)}</p>` : ''}<div class="device-event-footer">${condition(event.kondisi)}${event.buktiUrl ? `<a class="device-proof-button" href="${e(domain.proofUrl(event.buktiUrl))}" target="_blank" rel="noopener noreferrer" aria-label="Lihat bukti serah terima ${e(dateText(event.tanggal))}">${icon('file')}Lihat Bukti <span aria-hidden="true">↗</span></a>` : '<span class="device-no-proof">Bukti tidak dilampirkan</span>'}</div></li>`).join('')}</ol>` : '<p class="history-empty">Belum ada serah terima. Perangkat masih pada pemegang awal yang dicatat.</p>';
+    pages.render($('device-history-pagination'), page, next => { historyPage = next; renderHistoryEvents(); $('device-history-events').scrollIntoView({block:'start'}); });
   }
   async function showHistory(id, success = false) {
     const device = await repo.get(id); historyId = id; renderHistory(device);

@@ -14,7 +14,7 @@ const columns='*,pemegang:karyawan(id,nik,nama,jabatan)';
 const map=v=>({id:v.id,jenis:v.jenis,nomor:v.nomor_seri,merek:v.merek,kondisi:v.kondisi,pemegang:person(v.pemegang),pemegangAwal:person(v.pemegang_awal),revision:v.versi,tanggalTerakhir:v.tanggal_serah_terima_terakhir,history:[]});
 function holderId(h){if(h?.kind==='admin')return null;if(h?.kind==='employee'&&h.employeeId)return h.employeeId;throw new Error('Pilih karyawan dari daftar atau Admin/Gudang.');}
 const fields=f=>({jenis:f.jenis,nomor_seri:f.nomor,merek:f.merek,kondisi:f.kondisi});
-async function get(id){const [v,h]=await Promise.all([A.one('perangkat',id,columns),A.all('serah_terima_perangkat','*',{perangkat_id:id},'urutan')]);return {...map(v),history:h.map(x=>({id:x.id,tanggal:x.tanggal,dari:person(x.pemegang_asal),kepada:person(x.penerima),kondisiSebelum:x.kondisi_sebelum,kondisi:x.kondisi,buktiUrl:x.link_bukti,catatan:x.catatan,namaPetugas:x.nama_petugas,dicatatPada:x.dicatat_pada}))};}
+async function get(id){const [v,h]=await Promise.all([A.one('perangkat',id,columns),A.all('serah_terima_perangkat','*',{perangkat_id:id},'urutan')]);return {...map(v),history:h.map(x=>({id:x.id,urutan:x.urutan,tanggal:x.tanggal,dari:person(x.pemegang_asal),kepada:person(x.penerima),kondisiSebelum:x.kondisi_sebelum,kondisi:x.kondisi,buktiUrl:x.link_bukti,catatan:x.catatan,namaPetugas:x.nama_petugas,dicatatPada:x.dicatat_pada}))};}
 g.DeviceDomain=Object.freeze({CONDITIONS,TYPES,today:g.TrackingDomain.today,dayNumber:g.TrackingDomain.dayNumber,proofUrl,sameHolder});
 g.DeviceStore=Object.freeze({
  async list(){return (await A.all('perangkat',columns,{},'dibuat_pada')).map(map).reverse();},get,
