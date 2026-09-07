@@ -20,8 +20,8 @@ g.DeviceStore=Object.freeze({
  async list(){return (await A.all('perangkat',columns,{},'dibuat_pada')).map(map).reverse();},get,
  async heldHt(employeeId){return (await A.all('perangkat',columns,{pemegang_id:employeeId,jenis:'HT'})).map(map);},
  async heldAssets(employeeId){if(!employeeId)throw new Error('Karyawan belum dipilih.');return (await A.all('perangkat','id,jenis,nomor_seri',{pemegang_id:employeeId},'jenis')).map(v=>({id:v.id,jenis:v.jenis,nomor:v.nomor_seri}));},
- async create(f){const v=await A.rpc('simpan_perangkat',{p_data:{...fields(f),pemegang_id:holderId(f.pemegang)}},true);return get(v.id);},
- async update(id,f){await A.rpc('simpan_perangkat',{p_id:id,p_versi:f.expectedRevision,p_data:fields(f)},true);return get(id);},
+ async create(f){if(!A.superAdmin())throw new Error('Hanya Super Admin yang boleh menambah perangkat.');const v=await A.rpc('simpan_perangkat',{p_data:{...fields(f),pemegang_id:holderId(f.pemegang)}},true);return get(v.id);},
+ async update(id,f){if(!A.superAdmin())throw new Error('Hanya Super Admin yang boleh mengedit perangkat.');await A.rpc('simpan_perangkat',{p_id:id,p_versi:f.expectedRevision,p_data:fields(f)},true);return get(id);},
  async handover(id,f){await A.rpc('catat_serah_terima',{p_id:id,p_versi:f.expectedRevision,p_data:{penerima_id:holderId(f.penerima),tanggal:f.tanggal,kondisi:f.kondisi,link_bukti:proofUrl(f.buktiUrl),catatan:f.catatan}},true);return get(id);}
 });
 })(window);

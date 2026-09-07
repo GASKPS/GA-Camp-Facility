@@ -13,10 +13,13 @@
   <link rel="stylesheet" href="skc.css">
   <link rel="stylesheet" href="akses.css">
   <link rel="stylesheet" href="mess-admin.css">
+  <link rel="stylesheet" href="profil.css">
+  <link rel="stylesheet" href="portal-polish.css">
   <script defer src="konfigurasi.js"></script>
   <script defer src="akses.js"></script>
   <script defer src="tracking-store.js"></script>
   <script defer src="employee-store.js"></script>
+  <script defer src="jabatan.js"></script>
   <script defer src="device-store.js"></script>
   <script defer src="skc-store.js"></script>
   <script defer src="tracking-pdf.js"></script>
@@ -26,10 +29,12 @@
   <script defer src="skc.js"></script>
   <script defer src="mess-import.js"></script>
   <script defer src="mess-admin.js"></script>
+  <script defer src="profil-store.js"></script>
+  <script defer src="profil.js"></script>
 </head>
 <body data-area="portal">
 <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title"><div class="auth-card">
-<img class="auth-logo" src="ga-logo.jpg" width="220" height="64" alt="General Affair Services"><span class="auth-kicker">PORTAL INTERNAL</span><h1 id="auth-title">GA Services</h1><p id="auth-description">Masuk untuk melanjutkan pekerjaan Anda.</p>
+<img class="auth-logo" src="ga-logo.jpg" width="220" height="64" alt="General Affair Services"><span class="auth-kicker">CAMP &amp; FACILITY</span><h1 id="auth-title">Masuk ke Portal GA</h1><p id="auth-description">Gunakan akun kerja Anda untuk melanjutkan.</p>
 <p class="auth-error" id="auth-error" role="alert" hidden></p>
 <form id="login-form"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"><label for="login-password">Password</label><div class="auth-password"><input id="login-password" type="password" required autocomplete="current-password"><button id="auth-password-toggle" type="button">Lihat</button></div><button id="login-submit" type="submit" class="auth-submit" disabled>Masuk</button></form>
 <div id="auth-setup" class="auth-setup" hidden><p>Jalankan SQL pemasangan, lalu isi URL proyek dan publishable key pada <strong>konfigurasi.js</strong>.</p></div>
@@ -43,7 +48,7 @@
       <img src="ga-logo.jpg" width="212" height="62" alt="General Affair Services">
       <button class="icon-button mobile-only" id="close-menu" type="button" aria-label="Tutup menu"><span data-icon="close"></span></button>
     </div>
-    <div class="workspace-name"><strong>Services Portal</strong><span>Camp &amp; Facility</span></div>
+    <div class="workspace-name"><strong>Portal GA</strong><span>Camp &amp; Facility</span></div>
     <div class="nav-label">MENU UTAMA</div>
     <nav class="main-nav" aria-label="Navigasi utama">
       <a class="nav-item" href="#link-kerja" data-route="link-kerja"><span data-icon="grid"></span><span>Link Kerja</span></a>
@@ -52,12 +57,12 @@
       <a class="nav-item" href="#ht-hp" data-route="ht-hp"><span data-icon="monitor"></span><span>Data Perangkat</span></a>
       <a class="nav-item" href="#mess" data-route="mess"><span data-icon="building"></span><span>Update Data Mess</span></a>
     </nav>
-    <div class="sidebar-foot"><span class="foot-rule"></span><span>General Affair Services</span><small>Portal operasional</small></div>
+    <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-haspopup="dialog" aria-label="Buka profil akun"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout>Keluar dari akun</button></div>
   </aside>
   <div class="workspace">
     <header class="topbar">
       <div class="topbar-left"><button class="icon-button mobile-only" id="open-menu" type="button" aria-label="Buka menu utama" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span></button><span class="breadcrumb-root">GA Services</span><span class="breadcrumb-separator" aria-hidden="true">/</span><strong id="page-label">Tracking Dokumen</strong></div>
-      <div class="topbar-right"><time id="today"></time><button type="button" class="sync-button" id="refresh-data" title="Muat data terbaru">Muat ulang</button><div class="current-account"><div class="current-account-info"><strong data-current-user></strong><small data-current-role></small></div><button type="button" class="account-exit" data-logout>Keluar</button></div></div>
+      <div class="topbar-right"><time id="today"></time><button type="button" class="sync-button" id="refresh-data" title="Muat data terbaru">Muat ulang</button><button type="button" class="mobile-profile" data-open-profile aria-label="Buka profil akun" aria-haspopup="dialog"><span class="account-avatar" data-account-avatar aria-hidden="true"></span></button></div>
     </header>
     <main id="main-content" tabindex="-1">
       <section class="tracking-page" id="tracking-page" aria-labelledby="tracking-title">
@@ -83,7 +88,7 @@
         </section>
       </section>
       <section class="tracking-page employees-page" id="employees-page" aria-labelledby="employees-title" hidden>
-        <div class="page-heading"><div><p class="page-kicker">DIREKTORI</p><h1 id="employees-title">Data karyawan</h1><p class="page-description">Daftar karyawan untuk serah terima perangkat dan pengambilan SKC.</p></div><button class="button button-primary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div>
+        <div class="page-heading"><div><p class="page-kicker">DIREKTORI</p><h1 id="employees-title">Data karyawan</h1><p class="page-description">Daftar karyawan untuk serah terima perangkat dan pengambilan SKC.</p></div><div class="heading-actions"><button class="button button-secondary" type="button" data-manage-jobs data-super-admin hidden>Kelola Jabatan</button><button class="button button-primary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div></div>
         <div class="preview-notice" data-preview-notice hidden><span data-icon="info"></span><p>Pratinjau tampilan. Login dan penyimpanan aktif setelah proyek Supabase baru dihubungkan.</p></div>
         <div class="employee-toolbar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="employee-search">Cari nama, NIK, atau jabatan karyawan</label><input id="employee-search" type="search" placeholder="Cari nama, NIK, atau jabatan…" autocomplete="off"></div><span id="employee-result-count" role="status" aria-live="polite">0 karyawan</span></div>
         <div id="employee-results"><div class="empty-state"><span class="empty-symbol" data-icon="users"></span><h2>Belum ada karyawan</h2><p>Daftarkan karyawan sekali, lalu pilih namanya saat serah terima perangkat.</p><button class="button button-secondary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div></div>
@@ -100,7 +105,7 @@
         <div class="device-form-links"><span>Form serah terima HT / HP</span><a class="device-external-link" data-device-resource="form" target="_blank" rel="noopener noreferrer">Google Form <span aria-hidden="true">↗</span></a><a class="device-external-link" data-device-resource="responses" target="_blank" rel="noopener noreferrer">Spreadsheet respons <span aria-hidden="true">↗</span></a></div>
       </section>
 <section class="tracking-page" id="mess-admin-page" hidden aria-labelledby="mess-admin-title">
-<div class="page-heading"><div><p class="page-kicker">DATA HUNIAN</p><h1 id="mess-admin-title">Update data mess</h1><p class="page-description">Perbarui daftar hunian untuk web pencarian mess.</p></div><a class="button button-secondary" href="https://mess-karyawan-lookup-taufik.t95901296.chatgpt.site" target="_blank" rel="noopener noreferrer">Buka web mess ↗</a></div>
+<div class="page-heading"><div><p class="page-kicker">DATA HUNIAN</p><h1 id="mess-admin-title">Update data mess</h1><p class="page-description">Perbarui daftar hunian untuk web pencarian mess.</p></div><a class="button button-secondary" href="https://gaskps.github.io/Mess-Karyawan/" target="_blank" rel="noopener noreferrer">Buka web mess ↗</a></div>
 <div class="preview-notice" data-preview-notice hidden><span data-icon="info"></span><p>Pratinjau tampilan. Hubungkan Supabase untuk mengimpor data.</p></div>
 <div class="mess-summary"><div><span>Pembaruan terakhir</span><strong id="mess-last-update">Belum ada pembaruan</strong></div><div><span>Baris data hunian</span><strong id="mess-row-count">0</strong></div><div><span>Diperbarui oleh</span><strong id="mess-last-actor">—</strong></div></div>
 <section class="documents-panel mess-upload" data-tulis><div class="mess-upload-head"><h2>Unggah daftar hunian</h2><p>Excel atau CSV dengan judul kolom pada baris pertama.</p></div><div class="mess-upload-body">
@@ -130,10 +135,12 @@
     <form id="skc-collect-form"><div class="form-body"><p class="actor-line">Petugas pencatat <strong data-current-user></strong></p><div class="selected-document"><span data-icon="user"></span><div><strong id="skc-collect-name"></strong><small id="skc-collect-nik"></small></div></div><p class="skc-collect-date">Tanggal cuti: <strong id="skc-collect-date"></strong></p><p class="skc-collect-description">Simpan setelah SKC diserahkan kepada karyawan. Data akan masuk ke daftar Sudah diambil.</p><p class="form-error" id="skc-collect-error" role="alert" hidden></p></div><div class="dialog-actions"><button type="button" class="button button-secondary" data-close="skc-collect-dialog">Batal</button><button type="submit" class="button button-primary">Tandai Sudah Diambil</button></div></form>
   </dialog>
 
+  <dialog class="photo-dialog" id="employee-photo-dialog" aria-labelledby="employee-photo-large-title"><div class="dialog-heading"><h2 id="employee-photo-large-title">Foto karyawan</h2><button class="icon-button" type="button" data-close="employee-photo-dialog" aria-label="Tutup foto karyawan"><span data-icon="close"></span></button></div><div class="photo-dialog-body"><img id="employee-photo-large" class="photo-dialog-image" alt="Foto karyawan"></div></dialog>
+
   <dialog class="form-dialog employee-detail-dialog" id="employee-detail-dialog" aria-labelledby="employee-detail-title">
     <div class="dialog-heading"><div><p class="dialog-kicker">DATA KARYAWAN</p><h2 id="employee-detail-title">Detail karyawan</h2></div><button class="icon-button" type="button" data-close="employee-detail-dialog" aria-label="Tutup detail karyawan"><span data-icon="close"></span></button></div>
     <div class="form-body" id="employee-detail-content" aria-live="polite"></div>
-    <div class="dialog-actions"><button class="button button-secondary" type="button" data-close="employee-detail-dialog">Tutup</button><button class="button button-primary" type="button" id="employee-detail-edit" data-tulis hidden><span data-icon="edit"></span>Edit Data Karyawan</button></div>
+    <div class="dialog-actions"><button class="button button-secondary" type="button" data-close="employee-detail-dialog">Tutup</button><button class="button button-primary" type="button" id="employee-detail-edit" data-master hidden><span data-icon="edit"></span>Edit Data Karyawan</button></div>
   </dialog>
 
   <dialog class="form-dialog" id="employee-dialog" aria-labelledby="employee-form-title">
@@ -143,7 +150,7 @@
       <div class="form-grid">
         <div class="field"><label for="employee-nik">NIK <span class="required">*</span></label><input id="employee-nik" name="nik" required maxlength="40" autocomplete="off" spellcheck="false"><small>Gunakan NIK yang tercatat di perusahaan.</small></div>
         <div class="field"><label for="employee-name">Nama karyawan <span class="required">*</span></label><input id="employee-name" name="nama" required maxlength="150" autocomplete="off"></div>
-        <div class="field"><label for="employee-job">Jabatan <span class="required">*</span></label><input id="employee-job" name="jabatan" required maxlength="150" autocomplete="off"></div>
+        <div class="field"><label for="employee-job">Jabatan <span class="required">*</span></label><select id="employee-job" name="jabatanId" required><option value="">Pilih jabatan</option></select><button type="button" class="button button-text field-add-job" data-manage-jobs data-super-admin hidden>+ Tambah jabatan</button></div>
         <div class="field"><label for="employee-grade">Golongan <span class="optional">opsional</span></label><input id="employee-grade" name="golongan" maxlength="40" autocomplete="off"></div>
         <div class="field"><label for="employee-phone">Nomor HP <span class="optional">opsional</span></label><input id="employee-phone" name="noHp" type="tel" maxlength="40" autocomplete="off"></div>
         <div class="field"><label for="employee-room">Kamar mess <span class="optional">opsional</span></label><input id="employee-room" name="kamarMess" maxlength="100" autocomplete="off"></div>

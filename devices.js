@@ -45,12 +45,14 @@
   $('device-kind-filter').addEventListener('change', renderDevices);
   function resetFilters() { $('device-search').value = ''; $('device-kind-filter').value = ''; renderDevices(); }
   async function newDevice() {
+    if (!window.Akses.superAdmin()) return;
     editingDevice = null; $('device-form').reset(); formError('device-form-error', '');
     $('device-form-kicker').textContent = 'PERANGKAT BARU'; $('device-form-title').textContent = 'Tambah perangkat'; $('device-save').textContent = 'Simpan Perangkat';
     $('device-holder-picker').hidden = false; initialPicker.setDisabled(false); $('device-edit-hint').hidden = true;
     await initialPicker.load('admin'); openDialog('device-dialog'); $('device-kind').focus();
   }
   async function editDevice(id) {
+    if (!window.Akses.superAdmin()) return;
     const device = await repo.get(id), form = $('device-form'); form.reset();
     editingDevice = { id, revision: device.revision };
     ['jenis','nomor','merek','kondisi'].forEach(field => { form.elements.namedItem(field).value = device[field]; });
@@ -111,7 +113,7 @@
   $('device-history-transfer').addEventListener('click', () => beginTransfer(historyId).catch(error => showToast(error.message)));
   $('device-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = form.querySelector('[type=submit]');
-    if (!form.reportValidity() || button.disabled) return;
+    if (!window.Akses.superAdmin() || !form.reportValidity() || button.disabled) return;
     button.disabled = true;
     try {
       const editing = editingDevice, data = Object.fromEntries(new FormData(form));
@@ -136,6 +138,7 @@
     } catch (error) { formError('handover-error', error.message); }
     finally { button.disabled = false; }
   });
+  document.addEventListener('akses:berubah', () => { if (!window.Akses.superAdmin()) $('device-dialog').close(); });
   window.DeviceUI = Object.freeze({beginReturn:(id,employeeId,afterReturn)=>beginTransfer(id,{returnToAdmin:true,employeeId,afterReturn})});
   document.addEventListener('employees:changed', () => refreshDevices().catch(error => showToast(error.message)));
   refreshDevices().catch(error => showToast(error.message));

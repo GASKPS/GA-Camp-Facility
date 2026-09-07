@@ -15,6 +15,7 @@
   function showApp() {
     $('auth-screen').hidden = true; $('app-shell').hidden = false;
     document.body.classList.toggle('read-only', !canWrite());
+    document.body.classList.toggle('not-super-admin', !superAdmin());
     document.body.classList.toggle('mode-pratinjau', state.preview);
     document.querySelectorAll('[data-current-user]').forEach(el => { el.textContent = state.profile?.nama || 'Pratinjau tampilan'; });
     document.querySelectorAll('[data-actor-input]').forEach(el => { el.value = state.profile?.nama || ''; });
@@ -26,9 +27,13 @@
   async function hydrate(user) {
     if (!user) { state.profile = null; $('app-shell').hidden = true; $('auth-screen').hidden = false; return; }
     const { data, error } = await state.client.from('profil_pengguna').select('*').eq('id',user.id).single();
-    if (error) throw new Error(errorText(error));
-    if (!data.aktif) throw new Error('Akun belum diaktifkan. Hubungi pengelola untuk mengaktifkan profil Anda.');
-    if (data.peran !== 'super_admin' && !data[area === 'mess' ? 'akses_mess' : 'akses_portal']) throw new Error('Akun ini belum diberi akses ke web ini. Hubungi pengelola.');
+    if (error || !data?.aktif || (data.peran !== 'super_admin' && !data[area === 'mess' ? 'akses_mess' : 'akses_portal'])) {
+      state.profile = null;
+      document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+      $('app-shell').hidden = true; $('auth-screen').hidden = false;
+      const message = error ? errorText(error) : !data.aktif ? 'Akun belum aktif. Hubungi Super Admin.' : 'Akun ini belum diberi akses ke web ini. Hubungi Super Admin.';
+      showError(message); throw new Error(message);
+    }
     state.profile = data; state.preview = false; showApp();
   }
   function loadSdk() {
@@ -75,9 +80,9 @@
   }
   async function rpc(name,args,write = false) {
     const client = await requireClient(write), {data,error} = await client.rpc(name,args);
-    if (error) throw new Error(errorText(error));
+    if (error) throw Object.assign(new Error(errorText(error)), {code: error.code});
     // PostgREST represents composite row results as arrays, even for one row.
-    const rows = ['simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess'];
+    const rows = ['simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess','simpan_jabatan','simpan_foto_profil','atur_hak_akses'];
     if (rows.includes(name) && Array.isArray(data)) {
       if (data.length !== 1) throw new Error('Hasil penyimpanan belum dapat dipastikan. Muat ulang data sebelum mencoba lagi.');
       return data[0];
@@ -98,7 +103,19 @@
     const client = await requireClient(), {data,error}=await client.from(table).select(columns).eq('id',id).single();
     if(error) throw new Error(errorText(error)); return data;
   }
-  g.Akses = Object.freeze({ready,canWrite,superAdmin,rpc,all,one,requireClient,errorText,
+  async function refreshProfile() {
+    await ready;
+    if (!state.client || state.preview) return;
+    const {data,error} = await state.client.auth.getUser();
+    if (error) throw new Error(errorText(error));
+    await hydrate(data.user);
+    return state.profile;
+  }
+  function acceptProfile(profile) {
+    if (profile?.id !== state.profile?.id) return;
+    state.profile=profile; showApp();
+  }
+  g.Akses = Object.freeze({ready,canWrite,superAdmin,rpc,all,one,requireClient,errorText,refreshProfile,acceptProfile,
     get profile(){return state.profile;}, get preview(){return state.preview;}, get configured(){return state.configured;}});
   $('login-form').addEventListener('submit',async event => {
     event.preventDefault(); const button=$('login-submit'); if(button.disabled) return;

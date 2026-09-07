@@ -8,7 +8,10 @@
   function time(v){return v?new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v))+' WIT':'Belum ada pembaruan';}
   async function metadata(){
     await A.ready;if(!A.profile)return;
-    settings=await A.one('pengaturan_mess',1);
+    renderMetadata(await A.one('pengaturan_mess',1));
+  }
+  function renderMetadata(value){
+    settings=value;
     $('mess-last-update').textContent=time(settings.diperbarui_pada);$('mess-row-count').textContent=settings.jumlah_data.toLocaleString('id-ID');$('mess-last-actor').textContent=settings.nama_petugas||'—';
   }
   let sheetPromise;
@@ -52,7 +55,7 @@
   function freezeUpload(value){busy=value;$('mess-file').disabled=value;$('mess-reset').disabled=value;$('mess-confirm').disabled=value;targets.forEach(([key])=>{if($('map-'+key))$('map-'+key).disabled=value;});updateButton();}
   $('mess-publish').addEventListener('click',async()=>{
     if(busy||!rows.length||!$('mess-confirm').checked)return;
-    freezeUpload(true);formError('mess-upload-error','');let importId=null,publishing=false;
+    freezeUpload(true);formError('mess-upload-error','');let importId=null,publishing=false,published=false;
     try{
       if(!settings)await metadata();
       importId=await A.rpc('mulai_impor_mess',{p_nama_berkas:$('mess-file').files[0].name,p_jumlah:rows.length,p_versi:settings.versi},true);
@@ -62,12 +65,13 @@
         $('mess-progress').value=Math.round(Math.min(i+500,rows.length)/rows.length*95);$('mess-upload-status').textContent='Mengunggah '+Math.min(i+500,rows.length).toLocaleString('id-ID')+' / '+rows.length.toLocaleString('id-ID')+' baris…';
       }
       publishing=true;$('mess-upload-status').textContent='Menerbitkan pembaruan mess…';
-      await A.rpc('terbitkan_impor_mess',{p_id:importId},true);importId=null;
-      reset();await metadata();$('mess-upload-status').textContent='Pembaruan tersimpan. Pencarian berikutnya menggunakan data hunian terbaru.';showToast('Data mess berhasil diperbarui.');
+      const receipt=await A.rpc('terbitkan_impor_mess',{p_id:importId},true);published=true;importId=null;
+      reset();renderMetadata(receipt);$('mess-upload-status').textContent='Pembaruan tersimpan. Pencarian berikutnya menggunakan data hunian terbaru.';showToast('Data mess berhasil diperbarui.');
     }catch(err){
-      // A response can be lost after commit. Never promise rollback in that case.
-      formError('mess-upload-error',err.message+(publishing?' Muat ulang informasi pembaruan untuk memastikan apakah sudah tersimpan.':' Data mess aktif belum diganti.'));
-      if(importId&&!publishing)try{await A.rpc('batalkan_impor_mess',{p_id:importId},true);}catch{}
+      // A database rejection and a lost response require different next steps.
+      const failure=window.MessImport.uploadFailure(err,{publishing,published});
+      formError('mess-upload-error',failure.message);
+      if(importId&&!failure.uncertain)try{await A.rpc('batalkan_impor_mess',{p_id:importId},true);}catch{}
       $('mess-upload-status').textContent='';
       try{await metadata();}catch{}
     }finally{freezeUpload(false);}

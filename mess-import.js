@@ -19,5 +19,14 @@
     });
     return { rows, errors, skipped };
   }
-  g.MessImport = Object.freeze({ validate });
+  function uploadFailure(error, {publishing = false, published = false} = {}) {
+    const message = String(error?.message || 'Pembaruan belum dapat disimpan.');
+    if (published) return {uncertain: false, message: 'Data mess sudah tersimpan, tetapi informasi pembaruan belum dapat ditampilkan. Muat ulang halaman.'};
+    if (/DELETE requires a WHERE clause/i.test(message)) return {uncertain: false, message: 'Upload mess ditolak oleh database. Percobaan ini tidak mengganti data aktif. Fungsi upload perlu diperbarui oleh pengelola sebelum mencoba lagi.'};
+    const code = String(error?.code || '');
+    const databaseRejected = /^[0-9A-Z]{5}$/.test(code) && !code.startsWith('08') && code !== '40003';
+    if (!publishing || databaseRejected) return {uncertain: false, message: message + ' Percobaan ini tidak mengganti data mess aktif.'};
+    return {uncertain: true, message: 'Status penyimpanan belum dapat dipastikan. Muat ulang informasi pembaruan dan periksa waktu, petugas, serta jumlah data sebelum mengunggah ulang. Detail: ' + message};
+  }
+  g.MessImport = Object.freeze({ validate, uploadFailure });
 })(window);
