@@ -18,7 +18,7 @@
       $('skc-results').innerHTML = `<div class="empty-state"><span class="empty-symbol">${icon(view === 'taken' ? 'check-circle' : 'file')}</span><h2>${title}</h2><p>${caption}</p>${view === 'pending' ? `<button class="button button-secondary" type="button" data-skc-action="new">${icon('plus')}Tambah SKC</button>` : ''}</div>`;
       return;
     }
-    $('skc-results').innerHTML = `<div class="table-scroll"><table class="skc-table"><caption class="sr-only">SKC ${view === 'pending' ? 'belum' : 'sudah'} diambil</caption><thead><tr><th scope="col">Karyawan</th><th scope="col">Tanggal cuti</th><th scope="col">Form Cuti</th><th scope="col">Exit</th><th scope="col">${view === 'pending' ? 'Pengambilan' : 'Sudah diambil'}</th></tr></thead><tbody>${rows.map(record => `<tr><td data-label="Karyawan"><strong class="skc-person-name">${e(record.nama)}</strong><span class="secondary-value">NIK ${e(record.nik)}</span></td><td data-label="Tanggal cuti" class="date-cell">${e(dateText(record.tanggalCuti))}</td><td data-label="Form Cuti">${link(record.formCutiUrl, 'Form Cuti')}</td><td data-label="Exit">${link(record.exitUrl, 'Exit')}</td><td data-label="Pengambilan">${taken(record) ? `<span class="skc-taken-label">${icon('check-circle')}Sudah diambil</span><span class="secondary-value">${e(dateText(record.tanggalDiambil))}</span><span class="secondary-value">Diambil: ${e(record.namaPengambil)} · ${e(record.nikPengambil)}</span><span class="secondary-value">Dicatat: ${e(record.namaPetugas)}</span>` : `<button class="button button-primary" type="button" data-skc-action="collect" data-skc-id="${e(record.id)}" aria-label="Tandai SKC ${e(record.nama)} tanggal cuti ${e(dateText(record.tanggalCuti))} sudah diambil">Tandai Diambil</button>`}</td></tr>`).join('')}</tbody></table></div>`;
+    $('skc-results').innerHTML = `<div class="table-scroll"><table class="skc-table"><caption class="sr-only">SKC ${view === 'pending' ? 'belum' : 'sudah'} diambil</caption><thead><tr><th scope="col">Karyawan</th><th scope="col">Tanggal cuti</th><th scope="col">Form Cuti</th><th scope="col">Exit</th><th scope="col">${view === 'pending' ? 'Pengambilan' : 'Sudah diambil'}</th></tr></thead><tbody>${rows.map(record => `<tr><td data-label="Karyawan"><strong class="skc-person-name">${e(record.nama)}</strong><span class="secondary-value">NIK ${e(record.nik)}</span></td><td data-label="Tanggal cuti" class="date-cell">${e(dateText(record.tanggalCuti))}</td><td data-label="Form Cuti">${link(record.formCutiUrl, 'Form Cuti')}</td><td data-label="Exit">${link(record.exitUrl, 'Exit')}</td><td data-label="Pengambilan">${taken(record) ? `<span class="skc-taken-label">${icon('check-circle')}Sudah diambil</span><span class="secondary-value">${e(dateText(record.tanggalDiambil))}</span><span class="secondary-value">Diambil: ${e(record.namaPengambil)} · ${e(record.nikPengambil)}</span><span class="secondary-value">Dicatat: ${e(record.namaPetugas)}</span>` : `<button class="button button-primary" type="button" data-skc-action="collect" data-skc-id="${e(record.id)}" aria-label="Tandai SKC ${e(record.nama)} tanggal cuti ${e(dateText(record.tanggalCuti))} sudah diambil">Tandai Diambil</button>`}${window.DataAdmin?.buttons('skc',record.id,record.revision,record.nama+' · '+dateText(record.tanggalCuti))||''}</td></tr>`).join('')}</tbody></table></div>`;
   }
   async function refresh() { records = await repo.list(); render(); }
   function selectView(next) {
@@ -75,7 +75,7 @@
     button.disabled = true;
     try {
       await repo.create({ ...Object.fromEntries(new FormData(form)), employeeId: picker.read().employeeId });
-      closeDialog('skc-dialog'); await refresh(); selectView('pending'); showToast('SKC ditambahkan ke daftar Belum diambil.');
+      window.FormGuard?.clean($('skc-form')); closeDialog('skc-dialog'); await refresh(); selectView('pending'); showToast('SKC ditambahkan ke daftar Belum diambil.');
     } catch (error) { formError('skc-form-error', error.message); }
     finally { button.disabled = false; }
   });
@@ -85,10 +85,10 @@
     button.disabled = true;
     try {
       await repo.collect(collecting.id, collecting.revision);
-      closeDialog('skc-collect-dialog'); await refresh(); selectView('taken');
+      window.FormGuard?.clean($('skc-collect-form')); closeDialog('skc-collect-dialog'); await refresh(); selectView('taken');
       $('skc-tab-taken').focus(); showToast('SKC masuk ke daftar Sudah diambil.');
     } catch (error) {
-      if(error.message.includes('HT_BELUM_KEMBALI')) {closeDialog('skc-collect-dialog');try{await beginCollect(collecting.id);}catch(err){showToast(err.message);}}
+      if(error.message.includes('HT_BELUM_KEMBALI')) {window.FormGuard?.clean($('skc-collect-form')); closeDialog('skc-collect-dialog');try{await beginCollect(collecting.id);}catch(err){showToast(err.message);}}
       else formError('skc-collect-error', error.message);
     }
     finally { button.disabled = false; }

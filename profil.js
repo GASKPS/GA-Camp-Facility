@@ -40,7 +40,7 @@
           <h2 id="ga-access-title" tabindex="-1">Hak akses akun</h2>
 <form id="ga-access-form" class="ga-profile-body">
       <div class="ga-access-summary"><strong id="ga-access-name"></strong><small id="ga-access-email"></small></div>
-      <div class="ga-access-role"><label class="ga-profile-label" for="ga-access-role">Peran</label><select id="ga-access-role" required><option value="pembaca">Pembaca</option><option value="admin">Admin</option><option value="super_admin">Super Admin</option></select></div>
+      <div class="ga-access-role"><label class="ga-profile-label" for="ga-access-role">Peran</label><select id="ga-access-role" required><option value="pembaca">Pembaca</option><option value="admin">Admin</option><option value="super_admin">Super Admin</option><option value="administrator">Administrator</option></select></div>
       <label class="ga-access-check"><input id="ga-access-active" type="checkbox">Akun aktif</label><label class="ga-access-check"><input id="ga-access-portal" type="checkbox">Akses Portal GA</label><label class="ga-access-check"><input id="ga-access-mess" type="checkbox">Akses Web Mess</label>
       <p class="ga-profile-help" id="ga-access-help"></p><p class="ga-profile-message" id="ga-access-message" role="status" hidden></p>
       <div class="ga-profile-actions"><button class="ga-profile-button" type="button" data-access-cancel>Batal</button><button class="ga-profile-button primary" id="ga-access-save" type="submit">Simpan hak akses</button></div>
@@ -50,7 +50,7 @@
     </section>`;
   let currentTab = 'profile', users = [], userOffset = 0, userQuery = '', userRequest = 0, editing = null;
   let photoBlob = null, photoUrl = '', photoGeneration = 0, photoVersion = 0, photoBusy = false, passwordBusy = false, accessBusy = false;
-  let pageVisible = false, previousRoute = isPortal ? '#tracking' : '';
+  let pageVisible = false, previousRoute = isPortal ? '#link-kerja' : '';
   let avatarRequest = 0, avatarPath = null, avatarUrl = '', avatarExpiry = 0;
   function message(id, text, kind = '') { const el = $(id); el.textContent = text; el.className = 'ga-profile-message' + (kind ? ' ' + kind : ''); el.hidden = !text; }
   function errorMessage(error) {
@@ -81,6 +81,8 @@
     $('ga-profile-name').textContent = p?.nama || 'Profil saya'; $('ga-profile-email').textContent = p?.email || '';
     $('ga-profile-role').textContent = S.roles[p?.peran] || '';
     $('ga-tab-users').hidden = !A.superAdmin();
+    [...$('ga-access-role').options].forEach(o=>{o.disabled=!A.administrator()&&['administrator','super_admin'].includes(o.value);o.hidden=o.disabled;});
+    document.dispatchEvent(new CustomEvent('profil:siap'));
     if (!A.superAdmin() && currentTab === 'users') selectTab('profile');
     if (!A.superAdmin()) { users = []; editing = null; $('ga-users-list').replaceChildren(); closeAccess(); }
     $('ga-photo-remove').hidden = !p?.foto_path;
@@ -91,7 +93,7 @@
   function clearPhoto() {
     photoGeneration++; photoBlob = null;
     if (photoUrl) URL.revokeObjectURL(photoUrl); photoUrl = '';
-    $('ga-photo-file').value = ''; $('ga-photo-preview').hidden = true; $('ga-photo-new-image').removeAttribute('src'); $('ga-photo-save').disabled = true;
+    $('ga-photo-file').value = ''; $('ga-photo-preview').hidden = true; $('ga-photo-new-image').removeAttribute('src'); $('ga-photo-save').disabled = true; window.FormGuard?.clean($('ga-photo-form'));
   }
   function freezePhoto(value) { photoBusy = value; $('ga-photo-file').disabled = value; $('ga-photo-remove').disabled = value; $('ga-photo-save').disabled = value || !photoBlob; }
   function resetPassword() {
@@ -103,6 +105,7 @@
     $('ga-access-form').reset(); message('ga-access-message', '');
   }
   function selectTab(tab) {
+    if(tab!==currentTab && window.FormGuard && !FormGuard.leave($('ga-panel-'+currentTab)))return;
     if (!['profile', 'password', 'users'].includes(tab) || (tab === 'users' && !A.superAdmin())) return;
     if (currentTab === 'password' && tab !== 'password' && !passwordBusy) resetPassword();
     currentTab = tab;
@@ -119,7 +122,7 @@
   }
   function routeProfile() {
     const visible = location.hash === '#profil' && !!A.profile;
-    if (location.hash !== '#profil') previousRoute = location.hash || (isPortal ? '#tracking' : '');
+    if (location.hash !== '#profil') previousRoute = location.hash || (isPortal ? '#link-kerja' : '');
     if (!isPortal) {
       host.hidden = !visible;
       document.querySelector('.simple-app-shell').hidden = visible;
@@ -151,19 +154,20 @@
     });
   });
   $('ga-photo-file').addEventListener('change', async event => {
-    const file = event.target.files[0]; clearPhoto(); message('ga-photo-message', ''); if (!file) return;
+    const file = event.target.files[0]; clearPhoto(); message('ga-photo-message', ''); if (!file) return; window.FormGuard?.touch($('ga-photo-form'));
     const generation = photoGeneration; freezePhoto(true); message('ga-photo-message', 'Menyiapkan foto…');
     try { const blob = await S.preparePhoto(file); if (generation !== photoGeneration) return; photoBlob = blob; photoUrl = URL.createObjectURL(blob); $('ga-photo-new-image').src = photoUrl; $('ga-photo-preview').hidden = false; message('ga-photo-message', ''); }
-    catch (error) { if (generation === photoGeneration) message('ga-photo-message', error.message, 'error'); }
+    catch (error) { if (generation === photoGeneration) { clearPhoto(); message('ga-photo-message', error.message, 'error'); } }
     finally { freezePhoto(false); }
   });
   async function savePhoto(remove) {
     if (photoBusy || (!remove && !photoBlob)) return;
     freezePhoto(true); message('ga-photo-message', 'Menyimpan foto…');
-    try { const profile = await S.savePhoto(remove ? null : photoBlob, photoVersion); photoVersion = profile.versi_foto; clearPhoto(); message('ga-photo-message', remove ? 'Foto profil dihapus.' : 'Foto profil tersimpan.', 'success'); }
+    try { const profile = await S.savePhoto(remove ? null : photoBlob, photoVersion); photoVersion = profile.versi_foto; window.FormGuard?.clean($('ga-photo-form')); clearPhoto(); message('ga-photo-message', remove ? 'Foto profil dihapus.' : 'Foto profil tersimpan.', 'success'); }
     catch (error) { message('ga-photo-message', errorMessage(error), 'error'); }
     finally { freezePhoto(false); }
   }
+  $('ga-photo-form').addEventListener('reset', clearPhoto);
   $('ga-photo-form').addEventListener('submit', event => { event.preventDefault(); savePhoto(false); });
   $('ga-photo-remove').addEventListener('click', () => savePhoto(true));
   $('ga-password-show').addEventListener('change', event => { $('ga-password-new').type = $('ga-password-confirm').type = event.target.checked ? 'text' : 'password'; });
@@ -181,7 +185,7 @@
     finally { button.disabled = false; }
   });
   function drawUsers() {
-    $('ga-users-list').innerHTML = users.map(p => `<li class="ga-user-row"><div><strong>${escape(p.nama)}${p.id === A.profile?.id ? ' (Anda)' : ''}</strong><small>${escape(p.email)}</small><span class="ga-user-status${p.aktif ? '' : ' inactive'}">${escape(S.roles[p.peran])} · ${p.aktif ? 'Aktif' : 'Belum aktif'}</span></div><button class="ga-profile-button" type="button" data-edit-access="${escape(p.id)}" aria-label="Atur akses ${escape(p.nama)}">Atur akses</button></li>`).join('');
+    $('ga-users-list').innerHTML = users.map(p => `<li class="ga-user-row"><div><strong>${escape(p.nama)}${p.id === A.profile?.id ? ' (Anda)' : ''}</strong><small>${escape(p.email)}</small><span class="ga-user-status${p.aktif ? '' : ' inactive'}">${escape(S.roles[p.peran])} · ${p.aktif ? 'Aktif' : 'Belum aktif'}</span></div><button class="ga-profile-button" ${!A.administrator() && ['administrator','super_admin'].includes(p.peran) ? 'disabled' : ''} type="button" data-edit-access="${escape(p.id)}" aria-label="Atur akses ${escape(p.nama)}">Atur akses</button></li>`).join('');
   }
   async function loadUsers(reset) {
     if (!A.superAdmin()) return;
@@ -199,16 +203,18 @@
   $('ga-users-search-form').addEventListener('submit', event => { event.preventDefault(); loadUsers(true); });
   $('ga-users-more').addEventListener('click', () => loadUsers(false)); $('ga-users-refresh').addEventListener('click', () => loadUsers(true));
   function roleHelp() {
-    const sa = $('ga-access-role').value === 'super_admin';
+    const sa = ['administrator','super_admin'].includes($('ga-access-role').value);
     for (const id of ['ga-access-portal', 'ga-access-mess']) { $(id).disabled = sa; if (sa) $(id).checked = true; }
-    $('ga-access-help').textContent = sa ? 'Super Admin dapat mengelola data master dan hak akses di kedua web.' : $('ga-access-role').value === 'admin' ? 'Admin dapat mencatat dokumen, SKC, serah terima perangkat, dan update mess. Data master dikelola Super Admin.' : 'Pembaca hanya dapat melihat data pada web yang diizinkan.';
+    $('ga-access-help').textContent = sa ? ($('ga-access-role').value==='administrator'?'Administrator mengelola seluruh akses, penghapusan, dan aktivasi kembali data.':'Super Admin mengelola master serta akses Admin dan Pembaca di kedua web.') : $('ga-access-role').value === 'admin' ? 'Admin dapat mencatat dokumen, SKC, serah terima perangkat, dan update mess. Data master dikelola Super Admin.' : 'Pembaca hanya dapat melihat data pada web yang diizinkan.';
   }
   $('ga-users-list').addEventListener('click', event => {
     const button = event.target.closest('[data-edit-access]'); if (!button || !A.superAdmin() || accessBusy) return;
+    if (window.FormGuard && !FormGuard.leave($('ga-access-form'))) return;
     editing = users.find(p => p.id === button.dataset.editAccess); if (!editing) return;
+    if (!A.administrator() && ['administrator','super_admin'].includes(editing.peran)) return;
     $('ga-access-name').textContent = editing.nama; $('ga-access-email').textContent = editing.email;
     $('ga-access-role').value = editing.peran; $('ga-access-active').checked = editing.aktif; $('ga-access-portal').checked = editing.akses_portal; $('ga-access-mess').checked = editing.akses_mess;
-    roleHelp(); message('ga-access-message', ''); $('ga-access-editor').hidden = false; $('ga-access-title').focus();
+    roleHelp(); message('ga-access-message', ''); $('ga-access-editor').hidden = false; $('ga-access-title').focus(); window.FormGuard?.clean($('ga-access-form'));
   });
   $('ga-access-role').addEventListener('change', roleHelp);
   $('ga-access-form').addEventListener('submit', async event => {
@@ -216,6 +222,7 @@
     accessBusy = true; $('ga-access-save').disabled = true; message('ga-access-message', '');
     try {
       const saved = await S.setAccess(editing, { peran: $('ga-access-role').value, aktif: $('ga-access-active').checked, aksesPortal: $('ga-access-portal').checked, aksesMess: $('ga-access-mess').checked });
+      window.FormGuard?.clean($('ga-access-form'));
       users = users.map(p => p.id === saved.id ? saved : p); drawUsers(); closeAccess(); message('ga-users-message', 'Hak akses ' + saved.nama + ' tersimpan.', 'success');
       if (saved.id === A.profile.id) await A.refreshProfile();
     } catch (error) { message('ga-access-message', errorMessage(error), 'error'); }

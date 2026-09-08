@@ -13,7 +13,7 @@
   let selectedEmployeeId = null, detailRequest = 0;
   function render() {
     const q = lower($('employee-search').value.trim());
-    const results = employees.filter(person => !q || lower([person.nama, person.nik, person.jabatan].join(' ')).includes(q));
+    const results = employees.filter(person => (person.aktif===($('employee-active-filter').value!=='nonaktif'))&&(!q || lower([person.nama, person.nik, person.jabatan].join(' ')).includes(q)));
     $('employee-result-count').textContent = q ? `${results.length} dari ${employees.length} karyawan` : `${employees.length} karyawan`;
     if (!results.length) {
       $('employee-results').innerHTML = `<div class="empty-state"><span class="empty-symbol">${icon('users')}</span><h2>${q ? 'Karyawan tidak ditemukan' : 'Belum ada karyawan'}</h2><p>${q ? 'Coba cari dengan nama, NIK, atau jabatan lainnya.' : 'Daftarkan karyawan sekali, lalu pilih namanya saat serah terima perangkat.'}</p><button class="button button-secondary" type="button" data-employee-action="${q ? 'reset' : 'new'}">${q ? 'Reset pencarian' : icon('plus') + 'Tambah Karyawan'}</button></div>`;
@@ -35,7 +35,8 @@
       if (request !== detailRequest || !$('employee-detail-dialog').open) return;
       $('employee-detail-title').textContent = person.nama;
       $('employee-detail-content').innerHTML = `<div class="employee-profile-head">${avatar(person, true)}<div><strong>NIK ${e(person.nik)}</strong><span>${e(person.jabatan)}</span></div></div><dl class="employee-profile-fields"><dt>Golongan</dt><dd>${e(person.golongan || '—')}</dd><dt>Nomor HP</dt><dd>${e(person.noHp || '—')}</dd><dt>Kamar mess</dt><dd>${e(person.kamarMess || '—')}</dd></dl><section class="employee-assets" aria-labelledby="employee-assets-title"><h3 id="employee-assets-title">Aset yang dipegang</h3>${assets.length ? `<div class="employee-asset-head" aria-hidden="true"><span>Jenis perangkat</span><span>Nomor seri</span></div><ul class="employee-asset-list" aria-label="Jenis perangkat dan nomor seri">${assets.map(asset => `<li><span>${e(asset.jenis)}</span><strong>${e(asset.nomor)}</strong></li>`).join('')}</ul>` : '<p class="employee-detail-message">Belum ada aset yang dipegang.</p>'}</section>`;
-      $('employee-detail-edit').hidden = !window.Akses.superAdmin();
+      $('employee-detail-edit').hidden = !window.Akses.superAdmin() || !person.aktif;
+      window.DataAdmin?.employeeButton(person);
     } catch (error) {
       if (request !== detailRequest || !$('employee-detail-dialog').open) return;
       $('employee-detail-content').innerHTML = `<p class="form-error" role="alert">${e(error.message)}</p><button class="button button-secondary" type="button" data-employee-action="retry-detail">Coba lagi</button>`;
@@ -95,6 +96,7 @@
     if (event.target.closest('[data-open-employees]')) document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   });
   $('employee-search').addEventListener('input', render);
+  $('employee-active-filter').addEventListener('change',render);
   $('employee-name').addEventListener('input', renderPhoto);
   $('employee-photo-remove').addEventListener('click', clearPhoto);
   $('employee-dialog').addEventListener('close', clearPhoto);
@@ -130,7 +132,7 @@
     try {
       const editing = editingEmployee, data = { ...Object.fromEntries(new FormData(form)), foto: photo };
       const employee = editing ? await repo.update(editing.id, { ...data, expectedRevision: editing.revision }) : await repo.create(data);
-      closeDialog('employee-dialog'); $('employee-search').value = ''; await refresh();
+      window.FormGuard?.clean($('employee-form')); closeDialog('employee-dialog'); $('employee-search').value = ''; await refresh();
       document.dispatchEvent(new CustomEvent('employees:changed'));
       if (editing && selectedEmployeeId === employee.id) refreshDetail();
       showToast(editing ? 'Data karyawan diperbarui.' : `${employee.nama} ditambahkan. Namanya sudah tersedia untuk dipilih.`);
@@ -159,7 +161,7 @@
   });
 
   // A single searchable, keyboard-accessible picker shared by both device forms.
-  function createPicker(prefix, label, { allowAdmin = true } = {}) {
+  function createPicker(prefix, label, { allowAdmin = true, allowExistingInactive = false } = {}) {
     const host = $(prefix + '-picker');
     host.innerHTML = `<label for="${prefix}-choice">${e(label)} <span class="required">*</span></label><div class="employee-picker"><div class="employee-picker-input">${icon('search')}<input id="${prefix}-choice" type="text" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" aria-controls="${prefix}-list" aria-describedby="${prefix}-help ${prefix}-detail" autocomplete="off" spellcheck="false" required placeholder="Cari dan pilih nama karyawan…"><button class="icon-button employee-picker-clear" id="${prefix}-clear" type="button" aria-label="Kosongkan pilihan ${e(label.toLowerCase())}" hidden>${icon('close')}</button></div><div class="employee-picker-results" id="${prefix}-results" hidden><ul class="employee-picker-list" role="listbox" id="${prefix}-list" aria-label="${e(label)}"></ul><p class="employee-picker-message" id="${prefix}-message" role="status" hidden></p></div><div class="employee-picker-detail" id="${prefix}-detail" aria-live="polite" hidden></div><p class="employee-picker-help" id="${prefix}-help">Belum terdaftar? Hubungi Super Admin untuk menambah <a href="#karyawan" data-open-employees>Data Karyawan</a>.</p></div>`;
     const input = $(prefix + '-choice'), list = $(prefix + '-list'), panel = $(prefix + '-results');
@@ -219,7 +221,7 @@
     return Object.freeze({
       async load(value = '', exclude = null) {
         const people = await repo.list();
-        options = [...(allowAdmin ? [{ id: 'admin', kind: 'admin' }] : []), ...people.map(person => ({ ...person, kind: 'employee' }))].filter(person => !exclude || !(person.kind === exclude.kind && (person.kind === 'admin' || person.id === exclude.employeeId)));
+        options = [...(allowAdmin ? [{ id: 'admin', kind: 'admin' }] : []), ...people.filter(person=>person.aktif||(allowExistingInactive&&person.id===value)).map(person => ({ ...person, kind: 'employee' }))].filter(person => !exclude || !(person.kind === exclude.kind && (person.kind === 'admin' || person.id === exclude.employeeId)));
         select(value);
       },
       read() {

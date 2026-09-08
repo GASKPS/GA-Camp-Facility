@@ -12,13 +12,15 @@ function dayNumber(v){
 }
 const isFinal=s=>FINAL.includes(s);
 const typeText=d=>d.jenisDokumen==='Lainnya'?d.jenisDokumenLainnya||'Lainnya':d.jenisDokumen;
-function filterDocuments(records,{query='',bu='',status=''}={},final=false){
+function filterDocuments(records,{query='',bu='',status='',office='',dateFrom='',dateTo=''}={},final=false){
+ if(dateFrom)dayNumber(dateFrom);if(dateTo)dayNumber(dateTo);
+ if(dateFrom&&dateTo&&dateFrom>dateTo)throw new Error('Tanggal awal tidak boleh setelah tanggal akhir.');
  const q=query.trim().toLocaleLowerCase('id-ID');
- return records.filter(d=>isFinal(d.statusTerakhir)===final&&(!bu||d.bu===bu)&&(!status||d.statusTerakhir===status)&&(!q||[d.kode,d.namaDokumen,d.nomorDokumen,typeText(d),d.bu,d.posisiSekarang,d.asalDokumen,d.noteDokumen].join(' ').toLocaleLowerCase('id-ID').includes(q)));
+ return records.filter(d=>isFinal(d.statusTerakhir)===final&&(!office||d.asalDokumen===office)&&(!dateFrom||d.tanggalMasuk>=dateFrom)&&(!dateTo||d.tanggalMasuk<=dateTo)&&(!bu||d.bu===bu)&&(!status||d.statusTerakhir===status)&&(!q||[d.kode,d.namaDokumen,d.nomorDokumen,typeText(d),d.bu,d.posisiSekarang,d.asalDokumen,d.noteDokumen].join(' ').toLocaleLowerCase('id-ID').includes(q)));
 }
 const holdDays=(d,t=today())=>!d.perpindahanTerakhir||isFinal(d.statusTerakhir)?null:Math.max(0,dayNumber(t)-dayNumber(d.perpindahanTerakhir));
-function map(d){return {id:d.id,kode:d.kode,namaDokumen:d.nama_dokumen,tanggalMasuk:d.tanggal_masuk,jenisDokumen:d.jenis_dokumen,jenisDokumenLainnya:d.jenis_lainnya,nomorDokumen:d.nomor_dokumen,bu:d.bu,asalDokumen:d.asal_dokumen,keperluan:d.keperluan,noteDokumen:d.catatan,notePerpindahanTerakhir:d.catatan_perpindahan_terakhir,statusTerakhir:d.status_terakhir,posisiSekarang:d.posisi_sekarang,tahapanSekarang:d.tahapan_sekarang,perpindahanTerakhir:d.perpindahan_terakhir,revision:d.versi,namaPembuat:d.nama_pembuat,dibuatPada:d.dibuat_pada,jumlahPerpindahan:d.jumlah_perpindahan,history:[]};}
-function fields(f){return {nama_dokumen:f.namaDokumen,tanggal_masuk:f.tanggalMasuk,jenis_dokumen:f.jenisDokumen,jenis_lainnya:f.jenisDokumenLainnya,nomor_dokumen:f.nomorDokumen,bu:f.bu,asal_dokumen:f.asalDokumen,keperluan:f.keperluan,catatan:f.noteDokumen};}
+function map(d){return {id:d.id,kode:d.kode,namaDokumen:d.nama_dokumen,tanggalMasuk:d.tanggal_masuk,jenisDokumen:d.jenis_dokumen,jenisDokumenLainnya:d.jenis_lainnya,nomorDokumen:d.nomor_dokumen,bu:d.bu,asalDokumen:d.office_asal||'',asalDokumenLama:d.asal_dokumen,keperluan:d.keperluan,noteDokumen:d.catatan,notePerpindahanTerakhir:d.catatan_perpindahan_terakhir,statusTerakhir:d.status_terakhir,posisiSekarang:d.posisi_sekarang,tahapanSekarang:d.tahapan_sekarang,perpindahanTerakhir:d.perpindahan_terakhir,revision:d.versi,namaPembuat:d.nama_pembuat,dibuatPada:d.dibuat_pada,jumlahPerpindahan:d.jumlah_perpindahan,history:[]};}
+function fields(f){return {nama_dokumen:f.namaDokumen,tanggal_masuk:f.tanggalMasuk,jenis_dokumen:f.jenisDokumen,jenis_lainnya:f.jenisDokumenLainnya,nomor_dokumen:f.nomorDokumen,bu:f.bu,office_asal:f.asalDokumen,keperluan:f.keperluan,catatan:f.noteDokumen};}
 async function get(id){
  const [doc,events]=await Promise.all([A.one('dokumen',id),A.all('perpindahan_dokumen','*',{dokumen_id:id},'urutan')]);
  return {...map(doc),history:events.map(v=>({id:v.id,tanggalPerpindahan:v.tanggal_perpindahan,tahapan:v.tahapan,dari:v.nama_petugas,posisiSebelum:v.posisi_sebelum,kepada:v.tujuan,status:v.status,notePerpindahan:v.catatan,namaPetugas:v.nama_petugas,dicatatPada:v.dicatat_pada}))};

@@ -17,7 +17,7 @@
   let sheetPromise;
   function sheetJs(){
     if(window.XLSX)return Promise.resolve(window.XLSX);
-    if(!sheetPromise)sheetPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';s.onload=()=>window.XLSX?resolve(window.XLSX):reject(new Error('Pembaca Excel belum tersedia.'));s.onerror=()=>{sheetPromise=null;reject(new Error('Pembaca Excel belum dapat dimuat. Muat ulang halaman.'));};document.head.append(s);});
+    if(!sheetPromise)sheetPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='vendor/xlsx.full.min.js';s.onload=()=>window.XLSX?resolve(window.XLSX):reject(new Error('Pembaca Excel belum tersedia.'));s.onerror=()=>{sheetPromise=null;reject(new Error('Pembaca Excel belum dapat dimuat. Muat ulang halaman.'));};document.head.append(s);});
     return sheetPromise;
   }
   function reset(){source=[];rows=[];headers=[];$('mess-file').value='';$('mess-mapping-panel').hidden=true;$('mess-progress').hidden=true;$('mess-upload-status').textContent='';formError('mess-upload-error','');}

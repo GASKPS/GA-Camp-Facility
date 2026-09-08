@@ -4,8 +4,9 @@
   const cfg = g.KONFIGURASI || {}, state = { client: null, profile: null, preview: false, configured: false };
   const $ = id => document.getElementById(id);
   const area = document.body.dataset.area || 'portal';
-  const canWrite = () => !!state.profile?.aktif && (state.profile.peran === 'super_admin' || (state.profile.akses_portal && state.profile.peran === 'admin'));
-  const superAdmin = () => state.profile?.aktif && state.profile.peran === 'super_admin';
+  const canWrite = () => !!state.profile?.aktif && (['administrator','super_admin'].includes(state.profile.peran) || (state.profile.akses_portal && state.profile.peran === 'admin'));
+  const superAdmin = () => state.profile?.aktif && ['administrator','super_admin'].includes(state.profile.peran);
+  const administrator = () => !!state.profile?.aktif && state.profile.peran === 'administrator';
   const errorText = error => {
     if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) return 'Koneksi terputus. Periksa internet lalu coba kembali.';
     if (['PGRST205','42P01','PGRST202'].includes(error?.code)) return 'Database belum lengkap. Jalankan SQL pemasangan pada proyek Supabase baru.';
@@ -16,10 +17,11 @@
     $('auth-screen').hidden = true; $('app-shell').hidden = false;
     document.body.classList.toggle('read-only', !canWrite());
     document.body.classList.toggle('not-super-admin', !superAdmin());
+    document.body.classList.toggle('not-administrator', !administrator());
     document.body.classList.toggle('mode-pratinjau', state.preview);
     document.querySelectorAll('[data-current-user]').forEach(el => { el.textContent = state.profile?.nama || 'Pratinjau tampilan'; });
     document.querySelectorAll('[data-actor-input]').forEach(el => { el.value = state.profile?.nama || ''; });
-    document.querySelectorAll('[data-current-role]').forEach(el => { el.textContent = ({super_admin:'Super Admin',admin:'Admin',pembaca:'Hanya lihat'})[state.profile?.peran] || 'Belum terhubung'; });
+    document.querySelectorAll('[data-current-role]').forEach(el => { el.textContent = ({administrator:'Administrator',super_admin:'Super Admin',admin:'Admin',pembaca:'Hanya lihat'})[state.profile?.peran] || 'Belum terhubung'; });
     document.querySelectorAll('[data-super-admin]').forEach(el => { el.hidden = !superAdmin(); });
     document.querySelectorAll('[data-preview-notice]').forEach(el => { el.hidden = !state.preview; });
     document.dispatchEvent(new CustomEvent('akses:berubah'));
@@ -27,7 +29,7 @@
   async function hydrate(user) {
     if (!user) { state.profile = null; $('app-shell').hidden = true; $('auth-screen').hidden = false; return; }
     const { data, error } = await state.client.from('profil_pengguna').select('*').eq('id',user.id).single();
-    if (error || !data?.aktif || (data.peran !== 'super_admin' && !data[area === 'mess' ? 'akses_mess' : 'akses_portal'])) {
+    if (error || !data?.aktif || (!['administrator','super_admin'].includes(data.peran) && !data[area === 'mess' ? 'akses_mess' : 'akses_portal'])) {
       state.profile = null;
       document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
       $('app-shell').hidden = true; $('auth-screen').hidden = false;
@@ -82,7 +84,7 @@
     const client = await requireClient(write), {data,error} = await client.rpc(name,args);
     if (error) throw Object.assign(new Error(errorText(error)), {code: error.code});
     // PostgREST represents composite row results as arrays, even for one row.
-    const rows = ['simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess','simpan_jabatan','simpan_foto_profil','atur_hak_akses'];
+    const rows = ['simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess','simpan_jabatan','simpan_foto_profil','atur_hak_akses','simpan_tamu','simpan_catatan_admin','ubah_status_catatan'];
     if (rows.includes(name) && Array.isArray(data)) {
       if (data.length !== 1) throw new Error('Hasil penyimpanan belum dapat dipastikan. Muat ulang data sebelum mencoba lagi.');
       return data[0];
@@ -115,7 +117,7 @@
     if (profile?.id !== state.profile?.id) return;
     state.profile=profile; showApp();
   }
-  g.Akses = Object.freeze({ready,canWrite,superAdmin,rpc,all,one,requireClient,errorText,refreshProfile,acceptProfile,
+  g.Akses = Object.freeze({ready,canWrite,superAdmin,administrator,rpc,all,one,requireClient,errorText,refreshProfile,acceptProfile,
     get profile(){return state.profile;}, get preview(){return state.preview;}, get configured(){return state.configured;}});
   $('login-form').addEventListener('submit',async event => {
     event.preventDefault(); const button=$('login-submit'); if(button.disabled) return;
@@ -124,6 +126,7 @@
       await ready; if(!state.client) throw new Error('Koneksi belum siap. Periksa konfigurasi Supabase.');
       const {data,error}=await state.client.auth.signInWithPassword({email:$('login-email').value.trim(),password:$('login-password').value});
       if(error) throw new Error(error.code === 'invalid_credentials' ? 'Email atau password tidak sesuai.' : errorText(error));
+      if (area === 'portal') location.hash='link-kerja';
       await hydrate(data.user); $('login-password').value='';
     } catch(err) { showError(errorText(err)); $('auth-reset').hidden=false; }
     finally { button.disabled=false; }

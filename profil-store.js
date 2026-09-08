@@ -1,7 +1,7 @@
 (function (g) {
   'use strict';
   const A = g.Akses, bucket = 'foto_profil';
-  const roles = Object.freeze({ super_admin: 'Super Admin', admin: 'Admin', pembaca: 'Pembaca' });
+  const roles = Object.freeze({ administrator: 'Administrator', super_admin: 'Super Admin', admin: 'Admin', pembaca: 'Pembaca' });
   function validatePassword(password, confirm) {
     if (password !== confirm) throw new Error('Konfirmasi password belum sama.');
     if (password.length < 8) throw new Error('Gunakan password minimal 8 karakter.');

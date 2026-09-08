@@ -21,3 +21,5 @@
 .read-only [data-tulis],.read-only [data-action="new-document"],.read-only [data-employee-action="new"],.read-only [data-employee-action="edit"],.read-only [data-device-action="new"],.read-only [data-device-action="edit"],.read-only [data-device-action="transfer"],.read-only [data-skc-action="new"],.read-only [data-skc-action="collect"]{display:none!important}
 .event-actor{display:block;margin:12px 0 0;color:#64748b;font-size:13px}.preview-notice p{margin:0}.sync-button{border:1px solid #d9e1eb;background:#fff;border-radius:7px;padding:7px 10px;color:#344766;font:inherit;cursor:pointer}
 @media(max-width:650px){.auth-screen{padding:18px}.auth-card{padding:27px 22px}.current-account-info{max-width:130px}.topbar-right time,.topbar-right .sync-button{display:none}.current-account{gap:7px}.account-exit{font-size:12px}.actor-line{align-items:flex-start;flex-direction:column;gap:3px}}
+
+[data-logout]{background:#b42318!important;color:#fff!important;border-color:#b42318!important;border-radius:6px}[data-logout]:hover{background:#912018!important;color:#fff!important}

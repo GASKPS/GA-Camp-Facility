@@ -1,7 +1,7 @@
 (function(g){
 'use strict';const A=g.Akses;
 const columns='*,data_jabatan:jabatan(id,nama,urutan)';
-const map=v=>({id:v.id,nik:v.nik,nama:v.nama,jabatan:v.data_jabatan?.nama||v.jabatan,jabatanId:v.jabatan_id,urutan:v.data_jabatan?.urutan??null,golongan:v.golongan,noHp:v.nomor_hp,kamarMess:v.kamar_mess,foto:v.foto,revision:v.versi});
+const map=v=>({id:v.id,aktif:v.aktif!==false,pernahDigunakan:!!v.pernah_digunakan,nik:v.nik,nama:v.nama,jabatan:v.data_jabatan?.nama||v.jabatan,jabatanId:v.jabatan_id,urutan:v.data_jabatan?.urutan??null,golongan:v.golongan,noHp:v.nomor_hp,kamarMess:v.kamar_mess,foto:v.foto,revision:v.versi});
 const fields=f=>({nik:f.nik,nama:f.nama,jabatan_id:f.jabatanId,golongan:f.golongan,nomor_hp:f.noHp,kamar_mess:f.kamarMess,foto:f.foto});
 const compare=(a,b)=>(a.urutan??Infinity)-(b.urutan??Infinity)||a.nama.localeCompare(b.nama,'id-ID',{sensitivity:'base'})||a.id.localeCompare(b.id);
 g.EmployeeStore=Object.freeze({

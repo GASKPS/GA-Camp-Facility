@@ -31,11 +31,12 @@
     reset(); ui().formError('job-error', ''); ui().openDialog('jobs-dialog'); await refresh(); $('job-name').focus();
   }
   document.querySelectorAll('[data-manage-jobs]').forEach(button => button.addEventListener('click', open));
-  $('jobs-refresh').addEventListener('click', refresh); $('job-cancel-edit').addEventListener('click', reset);
+  $('jobs-refresh').addEventListener('click', refresh); $('job-cancel-edit').addEventListener('click',()=>{if(!window.FormGuard||FormGuard.leave($('job-form')))reset();});
   $('jobs-list').addEventListener('click', event => {
     const button = event.target.closest('[data-edit-job]'); if (!button || pending || !A.superAdmin()) return;
+    if(window.FormGuard&&!FormGuard.leave($('job-form')))return;
     editing = jobs.find(j => j.id === button.dataset.editJob); if (!editing) return;
-    $('job-name').value = editing.nama; $('job-rank').value = editing.urutan ?? ''; $('job-save').textContent = 'Simpan perubahan'; $('job-cancel-edit').hidden = false; ui().formError('job-error', ''); $('job-name').focus();
+    $('job-name').value = editing.nama; $('job-rank').value = editing.urutan ?? ''; $('job-save').textContent = 'Simpan perubahan'; $('job-cancel-edit').hidden = false; ui().formError('job-error', ''); $('job-name').focus(); window.FormGuard?.clean($('job-form'));
   });
   $('job-form').addEventListener('submit', async event => {
     event.preventDefault(); if (pending || !A.superAdmin() || !event.currentTarget.reportValidity()) return;

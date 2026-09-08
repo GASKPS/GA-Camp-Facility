@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="portal-polish.css">
   <link rel="stylesheet" href="paginasi.css">
   <script defer src="konfigurasi.js"></script>
+  <script defer src="form-guard.js"></script>
   <script defer src="akses.js"></script>
   <script defer src="tracking-store.js"></script>
   <script defer src="employee-store.js"></script>
@@ -26,6 +27,7 @@
   <script defer src="tracking-pdf.js"></script>
   <script defer src="paginasi.js"></script>
   <script defer src="portal.js"></script>
+  <script defer src="data-admin.js"></script>
   <script defer src="employees.js"></script>
   <script defer src="devices.js"></script>
   <script defer src="skc.js"></script>
@@ -33,6 +35,9 @@
   <script defer src="mess-admin.js"></script>
   <script defer src="profil-store.js"></script>
   <script defer src="profil.js"></script>
+  <script defer src="agenda.js"></script>
+  <script defer src="ekspor.js"></script>
+  <link rel="stylesheet" href="pembaruan08.css">
 </head>
 <body data-area="portal">
 <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title"><div class="auth-card">
@@ -57,6 +62,7 @@
       <a class="nav-item" href="#karyawan" data-route="karyawan"><span data-icon="users"></span><span>Data Karyawan</span></a>
       <a class="nav-item active" href="#tracking" data-route="tracking" aria-current="page"><span data-icon="files"></span><span>Tracking Dokumen</span></a>
       <a class="nav-item" href="#ht-hp" data-route="ht-hp"><span data-icon="monitor"></span><span>Data Perangkat</span></a>
+      <a class="nav-item" href="#agenda" data-route="agenda" data-writer-menu><span data-icon="clock"></span><span>Tamu &amp; Catatan</span></a>
       <a class="nav-item" href="#mess" data-route="mess"><span data-icon="building"></span><span>Update Data Mess</span></a>
     </nav>
     <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-controls="profile-page" aria-label="Buka Profil dan Pengaturan"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout>Keluar dari akun</button></div>
@@ -73,13 +79,13 @@
         <section class="stats" id="document-stats" aria-label="Ringkasan dokumen">
           <div class="stat"><div class="stat-top"><span>Dokumen aktif</span><span data-icon="files"></span></div><strong id="stat-active">0</strong></div>
           <div class="stat"><div class="stat-top"><span>Menunggu approval</span><span data-icon="clock"></span></div><strong id="stat-approval">0</strong></div>
-          <div class="stat"><div class="stat-top"><span>Tertahan &gt; 7 hari</span><span data-icon="alert"></span></div><strong id="stat-overdue">0</strong></div>
+          <div class="stat"><div class="stat-top"><span>Tertahan &gt; 3 hari</span><span data-icon="alert"></span></div><strong id="stat-overdue">0</strong></div>
           <div class="stat"><div class="stat-top"><span>Dokumen selesai</span><span data-icon="check-circle"></span></div><strong id="stat-done">0</strong></div>
         </section>
         <section class="documents-panel" aria-label="Dokumen dan pengambilan SKC">
           <div class="panel-tabs-row"><div class="document-tabs" role="tablist" aria-label="Kelompok dokumen"><button id="tab-active" class="document-tab active" role="tab" aria-selected="true" aria-controls="document-results" type="button" data-tab="active">Aktif <span id="active-count">0</span></button><button id="tab-done" class="document-tab" role="tab" aria-selected="false" aria-controls="document-results" tabindex="-1" type="button" data-tab="done">Selesai <span id="done-count">0</span></button><button id="tab-skc" class="document-tab" role="tab" aria-selected="false" aria-controls="skc-panel" tabindex="-1" type="button" data-tab="skc">Ambil SKC <span id="skc-count">0</span></button></div><div class="tracking-list-actions"><span class="list-caption" id="tracking-list-caption">Daftar dokumen</span><button class="button button-secondary" id="download-active-pdf" type="button" disabled><span data-icon="download"></span><span id="download-pdf-label">Unduh PDF</span></button></div></div>
-          <div class="filter-bar" id="document-filters"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="search">Cari dokumen</label><input id="search" type="search" placeholder="Cari nama, nomor, atau posisi dokumen…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="filter-bu">Filter BU</label><select id="filter-bu"><option value="">Semua BU</option><option>KPS</option><option>HJF</option><option>OST</option><option>Lainnya</option></select></div><div class="filter-select"><label class="sr-only" for="filter-status">Filter status</label><select id="filter-status"><option value="">Semua status</option></select></div></div>
-          <div id="document-results" role="tabpanel" aria-labelledby="tab-active" tabindex="0"><div class="empty-state"><span class="empty-symbol" data-icon="files"></span><h2>Belum ada dokumen aktif</h2><p>Tambahkan dokumen untuk mulai mencatat perjalanan approval.</p><button class="button button-secondary" type="button" data-action="new-document"><span data-icon="plus"></span>Tambah Dokumen</button></div></div>
+          <div class="filter-bar" id="document-filters"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="search">Cari dokumen</label><input id="search" type="search" placeholder="Cari nama, nomor, atau posisi dokumen…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="filter-bu">Filter BU</label><select id="filter-bu"><option value="">Semua BU</option><option>KPS</option><option>HJF</option><option>OST</option><option>Lainnya</option></select></div><div class="filter-select"><label class="sr-only" for="filter-status">Filter status</label><select id="filter-status"><option value="">Semua status</option></select></div><div class="filter-select"><label for="filter-office">Asal dokumen</label><select id="filter-office"><option value="">Semua Office</option><option>Camp &amp; Facility</option><option>Canteen</option></select></div><div class="filter-select"><label for="filter-from">Dari tanggal</label><input id="filter-from" type="date"></div><div class="filter-select"><label for="filter-to">Sampai tanggal</label><input id="filter-to" type="date"></div></div>
+          <p id="filter-date-error" class="form-error" role="alert" hidden>Tanggal awal tidak boleh setelah tanggal akhir.</p><div id="document-results" role="tabpanel" aria-labelledby="tab-active" tabindex="0"><div class="empty-state"><span class="empty-symbol" data-icon="files"></span><h2>Belum ada dokumen aktif</h2><p>Tambahkan dokumen untuk mulai mencatat perjalanan approval.</p><button class="button button-secondary" type="button" data-action="new-document"><span data-icon="plus"></span>Tambah Dokumen</button></div></div>
           <footer class="table-footer" id="document-footer"><span id="result-count" role="status" aria-live="polite">0 dokumen</span><div class="pagination" id="document-pagination" hidden></div></footer><p id="download-pdf-status" class="export-status" role="status" aria-live="polite" hidden></p>
           <div id="skc-panel" role="tabpanel" aria-labelledby="tab-skc" hidden>
             <div class="skc-panel-heading"><h2>Pengambilan SKC</h2><p>Surat keterangan cuti karyawan</p></div>
@@ -92,7 +98,7 @@
       <section class="tracking-page employees-page" id="employees-page" aria-labelledby="employees-title" hidden>
         <div class="page-heading"><div><p class="page-kicker">DIREKTORI</p><h1 id="employees-title">Data karyawan</h1><p class="page-description">Daftar karyawan untuk serah terima perangkat dan pengambilan SKC.</p></div><div class="heading-actions"><button class="button button-secondary" type="button" data-manage-jobs data-super-admin hidden>Kelola Jabatan</button><button class="button button-primary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div></div>
         <div class="preview-notice" data-preview-notice hidden><span data-icon="info"></span><p>Pratinjau tampilan. Login dan penyimpanan aktif setelah proyek Supabase baru dihubungkan.</p></div>
-        <div class="employee-toolbar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="employee-search">Cari nama, NIK, atau jabatan karyawan</label><input id="employee-search" type="search" placeholder="Cari nama, NIK, atau jabatan…" autocomplete="off"></div><span id="employee-result-count" role="status" aria-live="polite">0 karyawan</span></div>
+        <div class="employee-toolbar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="employee-search">Cari nama, NIK, atau jabatan karyawan</label><input id="employee-search" type="search" placeholder="Cari nama, NIK, atau jabatan…" autocomplete="off"></div><div class="filter-select"><label for="employee-active-filter">Status data</label><select id="employee-active-filter"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div><span id="employee-result-count" role="status" aria-live="polite">0 karyawan</span></div>
         <div id="employee-results"><div class="empty-state"><span class="empty-symbol" data-icon="users"></span><h2>Belum ada karyawan</h2><p>Daftarkan karyawan sekali, lalu pilih namanya saat serah terima perangkat.</p><button class="button button-secondary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div></div>
       </section>
       <section class="tracking-page devices-page" id="devices-page" aria-labelledby="devices-title" hidden>
@@ -100,7 +106,7 @@
         <div class="preview-notice" data-preview-notice hidden><span data-icon="info"></span><p>Pratinjau tampilan. Login dan penyimpanan aktif setelah proyek Supabase baru dihubungkan.</p></div>
         <section class="documents-panel" aria-label="Daftar perangkat">
           <div class="device-panel-head"><h2>Daftar perangkat</h2><span id="device-summary">0 HT · 0 HP · 0 PC · 0 Printer</span></div>
-          <div class="filter-bar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="device-search">Cari perangkat</label><input id="device-search" type="search" placeholder="Cari nomor seri, merek, NIK, atau pemegang…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="device-kind-filter">Filter jenis perangkat</label><select id="device-kind-filter"><option value="">Semua jenis</option><option>HT</option><option>HP</option><option>PC</option><option>Printer</option></select></div></div>
+          <div class="filter-bar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="device-search">Cari perangkat</label><input id="device-search" type="search" placeholder="Cari nomor seri, merek, NIK, atau pemegang…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="device-kind-filter">Filter jenis perangkat</label><select id="device-kind-filter"><option value="">Semua jenis</option><option>HT</option><option>HP</option><option>PC</option><option>Printer</option></select></div><div class="filter-select"><label for="device-active-filter">Status data</label><select id="device-active-filter"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div></div>
           <div id="device-results"><div class="empty-state"><span class="empty-symbol" data-icon="phone"></span><h2>Belum ada perangkat</h2><p>Tambahkan perangkat untuk mencatat pemegang dan riwayatnya.</p><button class="button button-secondary" type="button" data-device-action="new"><span data-icon="plus"></span>Tambah Perangkat</button></div></div>
           <footer class="table-footer"><span id="device-result-count" role="status" aria-live="polite">0 perangkat</span><span class="table-tip">Riwayat dan bukti disimpan per perangkat</span></footer>
         </section>
@@ -117,6 +123,7 @@
 <progress id="mess-progress" hidden max="100" value="0"></progress><p id="mess-upload-status" role="status" aria-live="polite"></p><p id="mess-upload-error" class="form-error" role="alert" hidden></p>
 </div></section><section class="documents-panel mess-audit" data-super-admin hidden><div class="mess-upload-head"><div><h2>Pencarian mess · 24 jam terakhir</h2><p>Hanya terlihat oleh Super Admin.</p></div><button type="button" class="button button-secondary" id="mess-log-refresh">Muat ulang</button></div><div id="mess-log-results"></div><div class="table-footer"><span id="mess-log-count"></span><button id="mess-log-more" class="button button-secondary" type="button" hidden>Muat berikutnya</button></div></section>
 </section>
+      <section class="tracking-page" id="agenda-page" hidden></section>
       <section class="tracking-page" id="profile-page" aria-label="Profil dan Pengaturan" hidden></section>
       <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services — halaman asli" src="link-kerja.html" loading="lazy"></iframe></section>
     </main>
@@ -172,7 +179,7 @@
           <div class="field"><label for="doc-type">Jenis dokumen <span class="required">*</span></label><select id="doc-type" name="jenisDokumen" required><option value="">Pilih jenis dokumen</option><option>FORM</option><option>EM</option><option>IM</option><option>Lainnya</option></select></div>
           <div class="field"><label for="doc-number">Nomor dokumen <span class="optional">opsional</span></label><input id="doc-number" name="nomorDokumen" maxlength="100" autocomplete="off"><small>Boleh kosong jika dokumen tidak memiliki nomor.</small></div>
           <div class="field span-two" id="other-type-field" hidden><label for="doc-other-type">Jenis dokumen lainnya <span class="required">*</span></label><input id="doc-other-type" name="jenisDokumenLainnya" maxlength="100" disabled></div>
-          <div class="field"><label for="doc-source">Asal dokumen <span class="required">*</span></label><input id="doc-source" name="asalDokumen" required maxlength="140" autocomplete="off"><small>Nama penitip atau unit asal dokumen.</small></div>
+          <div class="field"><label for="doc-source">Asal dokumen <span class="required">*</span></label><select id="doc-source" name="asalDokumen" required><option value="">Pilih office asal</option><option>Camp &amp; Facility</option><option>Canteen</option></select><small>Office asal dokumen.</small></div>
           <div class="field"><label for="doc-purpose">Keperluan <span class="required">*</span></label><select id="doc-purpose" name="keperluan" required><option value="">Pilih keperluan</option><option>Approval</option><option>Tanda Tangan</option><option>Revisi</option><option>Pengarsipan</option><option>Lainnya</option></select></div>
           <div class="field span-two note-field"><label for="doc-note">Note dokumen <span class="optional">opsional</span></label><textarea id="doc-note" name="noteDokumen" rows="3" maxlength="3000"></textarea><small>Komentar atau keterangan mengenai dokumen.</small></div>
         </div><p class="form-error" id="document-error" role="alert" hidden></p>

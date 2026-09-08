@@ -25,7 +25,7 @@
   }
   function renderDevices() {
     const q = $('device-search').value.trim().toLocaleLowerCase('id-ID'), kind = $('device-kind-filter').value;
-    const rows = devices.filter(d => (!kind || d.jenis === kind) && (!q || [d.jenis,d.nomor,d.merek,d.pemegang.nik,d.pemegang.jabatan,personLabel(d.pemegang)].join(' ').toLocaleLowerCase('id-ID').includes(q)));
+    const rows = devices.filter(d => (d.aktif===($('device-active-filter').value!=='nonaktif'))&&(!kind || d.jenis === kind) && (!q || [d.jenis,d.nomor,d.merek,d.pemegang.nik,d.pemegang.jabatan,personLabel(d.pemegang)].join(' ').toLocaleLowerCase('id-ID').includes(q)));
     $('device-summary').textContent = domain.TYPES.map(kind => `${devices.filter(d => d.jenis === kind).length} ${kind}`).join(' · ');
     $('device-result-count').textContent = q || kind ? `${rows.length} dari ${devices.length} perangkat` : `${devices.length} perangkat`;
     if (!rows.length) {
@@ -39,12 +39,13 @@
       <td data-label="Nomor seri"><button class="device-serial" type="button" data-device-action="history" data-device-id="${e(d.id)}" aria-label="Riwayat perangkat ${e(d.nomor)}">${e(d.nomor)}</button></td>
       <td data-label="Merek / tipe">${e(d.merek)}</td><td data-label="Kondisi">${condition(d.kondisi)}</td>
       <td data-label="Pemegang saat ini"><span class="device-owner ${d.pemegang.kind === 'admin' ? 'admin' : ''}">${e(personLabel(d.pemegang))}</span>${d.pemegang.kind === 'employee' ? `<span class="device-owner-nik">${e(personNik(d.pemegang))}</span>` : ''}</td>
-      <td data-label="Tindakan"><div class="device-row-actions"><button class="button button-primary" type="button" data-device-action="transfer" data-device-id="${e(d.id)}" aria-label="Serah terima ${e(d.nomor)}">Serah Terima</button><button class="button button-secondary" type="button" data-device-action="history" data-device-id="${e(d.id)}" aria-label="Riwayat ${e(d.nomor)}">Riwayat</button><button class="button button-secondary" type="button" data-device-action="edit" data-device-id="${e(d.id)}" aria-label="Edit perangkat ${e(d.nomor)}">Edit</button></div></td>
+      <td data-label="Tindakan"><div class="device-row-actions"><button ${d.aktif ? '' : 'hidden'} class="button button-primary" type="button" data-device-action="transfer" data-device-id="${e(d.id)}" aria-label="Serah terima ${e(d.nomor)}">Serah Terima</button><button class="button button-secondary" type="button" data-device-action="history" data-device-id="${e(d.id)}" aria-label="Riwayat ${e(d.nomor)}">Riwayat</button><button ${d.aktif ? '' : 'hidden'} class="button button-secondary" type="button" data-device-action="edit" data-device-id="${e(d.id)}" aria-label="Edit perangkat ${e(d.nomor)}">Edit</button>${window.DataAdmin?.buttons('perangkat',d.id,d.revision,d.nomor,d.aktif)||''}</div></td>
     </tr>`).join('')}</tbody></table></div>`;
   }
   async function refreshDevices() { devices = await repo.list(); renderDevices(); }
   $('device-search').addEventListener('input', renderDevices);
   $('device-kind-filter').addEventListener('change', renderDevices);
+  $('device-active-filter').addEventListener('change',renderDevices);
   function resetFilters() { $('device-search').value = ''; $('device-kind-filter').value = ''; renderDevices(); }
   async function newDevice() {
     if (!window.Akses.superAdmin()) return;
@@ -86,7 +87,7 @@
     pages.render($('device-history-pagination'), page, next => { historyPage = next; renderHistoryEvents(); $('device-history-events').scrollIntoView({block:'start'}); });
   }
   async function showHistory(id, success = false) {
-    const device = await repo.get(id); historyId = id; renderHistory(device);
+    const device = await repo.get(id); historyId = id; renderHistory(device); $('device-history-transfer').hidden=!device.aktif;
     $('device-history-success').hidden = !success;
     $('device-history-success').textContent = success ? 'Serah terima dicatat. Pemegang perangkat sudah diperbarui.' : '';
     openDialog('device-history-dialog');
@@ -128,7 +129,7 @@
       const editing = editingDevice, data = Object.fromEntries(new FormData(form));
       if (editing) await repo.update(editing.id, { ...data, expectedRevision: editing.revision });
       else await repo.create({ ...data, pemegang: initialPicker.read() });
-      closeDialog('device-dialog'); await refreshDevices(); resetFilters();
+      window.FormGuard?.clean($('device-form')); closeDialog('device-dialog'); await refreshDevices(); resetFilters();
       document.dispatchEvent(new CustomEvent('devices:changed'));
       showToast(editing ? 'Data perangkat diperbarui.' : 'Perangkat ditambahkan dan disimpan.');
     } catch (error) { formError('device-form-error', error.message); }
@@ -141,7 +142,7 @@
     try {
       const device = await repo.handover(handoverId, { ...Object.fromEntries(new FormData(form)), penerima: recipientPicker.read(), expectedRevision: handoverRevision });
       const continuation = afterReturn; afterReturn = null;
-      closeDialog('handover-dialog'); await refreshDevices();
+      window.FormGuard?.clean($('handover-form')); closeDialog('handover-dialog'); await refreshDevices();
       document.dispatchEvent(new CustomEvent('devices:changed'));
       if (continuation) await continuation(); else await showHistory(device.id, true);
     } catch (error) { formError('handover-error', error.message); }

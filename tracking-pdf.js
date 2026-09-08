@@ -35,10 +35,10 @@
     const doc = new g.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true, putOnlyUsedFonts: true });
     doc.addFileToVFS('GA-Regular.ttf', fonts.regular); doc.addFont('GA-Regular.ttf', 'GA', 'normal');
     doc.addFileToVFS('GA-Bold.ttf', fonts.bold); doc.addFont('GA-Bold.ttf', 'GA', 'bold');
-    doc.setProperties({ title: 'Tracking Dokumen Aktif', subject: 'Ringkasan posisi terakhir dokumen aktif', creator: 'GA Services', author: 'GA Service Camp & Facility' });
+    doc.setProperties({ title: 'Tracking Dokumen Aktif', subject: 'Ringkasan posisi terakhir dokumen aktif', creator: 'GA Services', author: 'GA Services' });
     const day = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jayapura', year: 'numeric', month: 'long', day: '2-digit' }).format(generatedAt).replace(/\s+/g, '_');
     const printed = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jayapura', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(generatedAt) + ' WIT';
-    const selected = [filters.query && 'Pencarian: ' + filters.query, filters.bu && 'BU: ' + filters.bu, filters.status && 'Status: ' + filters.status].filter(Boolean).join(' | ') || 'Seluruh dokumen aktif';
+    const selected = [filters.query && 'Pencarian: ' + filters.query, filters.bu && 'BU: ' + filters.bu, filters.status && 'Status: ' + filters.status, filters.office && 'Asal: '+filters.office, filters.dateFrom && 'Dari: '+dateText(filters.dateFrom), filters.dateTo && 'Sampai: '+dateText(filters.dateTo)].filter(Boolean).join(' | ') || 'Seluruh dokumen aktif';
     const width = doc.internal.pageSize.getWidth(), height = doc.internal.pageSize.getHeight(), margin = 12;
     doc.setFont('GA', 'normal').setFontSize(8.5);
     const allFilterLines = doc.splitTextToSize(selected, width - margin * 2), filterLines = allFilterLines.slice(0, 3);
@@ -48,7 +48,7 @@
       doc.setFont('GA', 'bold').setFontSize(15).setTextColor(32, 52, 75);
       doc.text('Tracking Dokumen Aktif', margin, 16);
       doc.setFont('GA', 'normal').setFontSize(8.5).setTextColor(91, 108, 127);
-      doc.text('GA Service Camp & Facility', margin, 23);
+      doc.text('GA Services', margin, 23);
       doc.text(printed, width - margin, 16, { align: 'right' });
       doc.text(rows.length.toLocaleString('id-ID') + ' dokumen', width - margin, 23, { align: 'right' });
       doc.text(filterLines, margin, 30, { lineHeightFactor: 1.33 });
@@ -59,9 +59,9 @@
       styles: { font: 'GA', fontSize: 8.2, cellPadding: 2.1, overflow: 'linebreak', valign: 'top', textColor: [43, 58, 76], lineColor: [218, 226, 234], lineWidth: 0.15 },
       headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [37, 63, 89], textColor: 255, fontSize: 8 },
       alternateRowStyles: { fillColor: [246, 248, 251] },
-      head: [['No', 'Tanggal masuk', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'BU', 'Status', 'Posisi sekarang', 'Note Perpindahan']],
-      body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), text(d.notePerpindahanTerakhir)]),
-      columnStyles: Object.fromEntries([9, 24, 49, 30, 22, 13, 30, 36, 60].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 ? { halign: 'center' } : {}) }])),
+      head: [['No', 'Tanggal masuk', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'Asal dokumen', 'BU', 'Status', 'Posisi sekarang', 'Note Perpindahan']],
+      body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.asalDokumen||'Belum ditentukan'), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), text(d.notePerpindahanTerakhir)]),
+      columnStyles: Object.fromEntries([10, 22, 38, 24, 16, 27, 11, 27, 32, 66].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 ? { halign: 'center' } : {}) }])),
       willDrawPage: header
     });
     const total = doc.getNumberOfPages();
