@@ -29,7 +29,7 @@
   const $ = id => document.getElementById(id);
   const D = window.TrackingDomain, repository = window.TrackingStore;
   let documents = [], selectedId = null, tab = 'active', toastTimer, editingDocument = null, movementRevision = null;
-  let exportingPdf = false, documentPage = 1, historyPage = 1, detailDocument = null;
+  let exportingPdf = false, documentPage = 1, historyPage = 1, detailDocument = null, snapshot={total:0,ringkasan:{}}, listRequest=0, filterTimer, historyRequest=0;
   const pages = window.Paginasi;
   const e = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const dateText = value => {
@@ -76,7 +76,7 @@
   });
   window.matchMedia('(min-width:901px)').addEventListener('change', event => { if (event.matches) toggleMenu(false); });
   function route() {
-    const pages = { tracking: ['tracking-page', 'Tracking Dokumen'], 'link-kerja': ['links-page', 'Link Kerja'], karyawan: ['employees-page', 'Data Karyawan'], 'ht-hp': ['devices-page', 'Data Perangkat'], mess: ['mess-admin-page','Update Data Mess'], profil: ['profile-page', 'Profil & Pengaturan'], agenda: ['agenda-page','Tamu & Catatan'] };
+    const pages = { tracking: ['tracking-page', 'Tracking Dokumen'], 'link-kerja': ['links-page', 'Link Kerja'], karyawan: ['employees-page', 'Data Karyawan'], 'ht-hp': ['devices-page', 'Data Perangkat'], mess: ['mess-admin-page','Update Data Mess'], profil: ['profile-page', 'Profil & Pengaturan'], agenda: ['agenda-page','Tamu & Catatan'], cuti: ['cuti-page','Tahunan & Extra'] };
     const requested = window.location.hash.slice(1);
     const routeName = Object.hasOwn(pages, requested) ? requested : 'link-kerja';
     Object.entries(pages).forEach(([name, page]) => { $(page[0]).hidden = name !== routeName; });
@@ -103,7 +103,7 @@
   }
   $('move-status').insertAdjacentHTML('beforeend', D.STATUS.map(s => `<option>${e(s)}</option>`).join(''));
   function selectTab(next) {
-    tab = next; documentPage = 1;
+    tab = next; documentPage = 1;listRequest++;documents=[];snapshot={...snapshot,total:0};
     document.querySelectorAll('[data-tab]').forEach(button => {
       const selected = button.dataset.tab === tab;
       button.classList.toggle('active', selected); button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
@@ -116,7 +116,7 @@
     $('tracking-description').textContent = skc ? 'Catat pengambilan surat keterangan cuti karyawan.' : 'Pantau posisi dokumen dan setiap perpindahannya.';
     $('tracking-list-caption').textContent = skc ? 'Surat keterangan cuti' : 'Daftar dokumen';
     if (!skc) { $('document-results').setAttribute('aria-labelledby', tab === 'active' ? 'tab-active' : 'tab-done'); fillStatuses(); }
-    render();
+    render();if(!skc)refresh().catch(error=>showToast(error.message));
   }
   document.querySelectorAll('[data-tab]').forEach(button => {
     button.addEventListener('click', () => selectTab(button.dataset.tab));
@@ -137,44 +137,48 @@
     $('filter-date-error').hidden=!bad;
     if(bad){$('download-active-pdf').disabled=true;return;}
 
-    const active = documents.filter(x => !D.isFinal(x.statusTerakhir)), done = documents.filter(x => D.isFinal(x.statusTerakhir));
-    $('stat-active').textContent = active.length; $('stat-approval').textContent = active.filter(x => x.statusTerakhir === 'Menunggu Approval').length;
-    $('stat-overdue').textContent = active.filter(x => D.holdDays(x) > 3).length; $('stat-done').textContent = done.length;
-    $('active-count').textContent = active.length; $('done-count').textContent = done.length;
-    if (tab === 'skc') return;
-    const all = tab === 'active' ? active : done, q = $('search').value.trim().toLocaleLowerCase('id-ID'), bu = $('filter-bu').value, st = $('filter-status').value;
-    const rows = D.filterDocuments(documents, filters(), tab === 'done');
-    $('download-active-pdf').disabled = exportingPdf || tab !== 'active' || !rows.length;
-    const page = pages.range(rows.length, documentPage); documentPage = page.page;
-    $('result-count').textContent = pages.summary(page) + ((q || bu || st) ? ` · ${all.length} dokumen seluruhnya` : '');
-    pages.render($('document-pagination'), page, next => { documentPage = next; render(); $('document-results').scrollIntoView({block:'start'}); }, false);
+    const counts=snapshot.ringkasan;
+    $('stat-active').textContent=counts.aktif||0;$('stat-approval').textContent=counts.approval||0;$('stat-overdue').textContent=counts.tertahan||0;$('stat-done').textContent=counts.selesai||0;
+    $('active-count').textContent=counts.aktif||0;$('done-count').textContent=counts.selesai||0;
+    if(tab==='skc')return;
+    const q=$('search').value.trim(),bu=$('filter-bu').value,st=$('filter-status').value,rows=documents;
+    $('download-active-pdf').disabled=exportingPdf||tab!=='active'||!snapshot.total;
+    const page=pages.range(snapshot.total,documentPage);documentPage=page.page;
+    $('result-count').textContent=pages.summary(page);
+    pages.render($('document-pagination'),page,next=>{documentPage=next;refresh().catch(error=>showToast(error.message));},false);
     if (!rows.length) {
       if (q || bu || st) $('document-results').innerHTML = empty('Dokumen tidak ditemukan', 'Coba kata kunci lain atau tampilkan semua dokumen.', '<button class="button button-secondary" type="button" data-action="reset-filters">Reset pencarian</button>');
       else if (tab === 'done') $('document-results').innerHTML = empty('Belum ada dokumen selesai', 'Dokumen yang selesai, sudah diambil, atau dibatalkan akan tampil di sini.');
       else $('document-results').innerHTML = empty('Belum ada dokumen aktif', 'Tambahkan dokumen untuk mulai mencatat perjalanan approval.', `<button class="button button-secondary" type="button" data-action="new-document">${icon('plus')}Tambah Dokumen</button>`);
       return;
     }
-    $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">Asal dokumen</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.slice(page.start, page.end).map(doc => {
+    $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">Asal dokumen</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.map(doc => {
       const held = D.holdDays(doc);
       return `<tr><td data-label="Dokumen"><button class="document-name" type="button" data-document="${e(doc.id)}">${e(doc.namaDokumen)}</button><span class="document-meta">${e(typeText(doc))}${doc.nomorDokumen ? ' · ' + e(doc.nomorDokumen) : ''}</span><span class="document-meta">${e(doc.kode)}</span></td><td data-label="Tanggal masuk" class="date-cell">${e(dateText(doc.tanggalMasuk))}</td><td data-label="Asal dokumen">${e(doc.asalDokumen||'Belum ditentukan')}</td><td data-label="BU"><span class="bu-badge">${e(doc.bu)}</span></td><td data-label="Status">${status(doc.statusTerakhir)}</td><td data-label="Posisi sekarang">${e(doc.posisiSekarang)}<span class="secondary-value">${e(doc.tahapanSekarang)}</span></td><td data-label="Lama tertahan"><span class="hold-value ${held > 3 ? 'overdue' : ''}">${held == null ? '—' : held + ' hari'}</span></td><td><button class="detail-row-button" type="button" data-document="${e(doc.id)}" aria-label="Lihat detail ${e(doc.namaDokumen)}">${icon('chevron')}</button></td></tr>`;
     }).join('')}</tbody></table></div>`;
   }
-  async function refresh() { documents = await repository.list(); render(); }
+  async function refresh() {
+    if(location.hash!=='#tracking'||tab==='skc')return;const seq=++listRequest;await window.Akses.ready;
+    if(!window.Akses.profile)return;
+    const f=filters();if(f.dateFrom&&f.dateTo&&f.dateFrom>f.dateTo){render();return;}
+    $('document-results').setAttribute('aria-busy','true');
+    try{const v=await repository.page(f,tab==='done',documentPage);if(seq!==listRequest||!window.Akses.profile)return;snapshot=v;documents=v.data;documentPage=v.halaman;render();}
+    finally{if(seq===listRequest)$('document-results').setAttribute('aria-busy','false');}
+  }
   $('download-active-pdf').addEventListener('click', async () => {
     if (exportingPdf || tab !== 'active' || !window.Akses.profile) return;
     const selectedFilters = filters(), label = $('download-pdf-label'), report = $('download-pdf-status');
     exportingPdf = true; label.textContent = 'Menyiapkan PDF…'; report.hidden = true; render();
     try {
-      const [fresh, fonts] = await Promise.all([repository.list(), window.TrackingPDF.ready()]);
-      documents = fresh;
+      const [fresh, fonts] = await Promise.all([repository.pdfList(selectedFilters), window.TrackingPDF.ready()]);
       const result = window.TrackingPDF.create(fresh, selectedFilters, fonts);
       await result.doc.save(result.filename, { returnPromise: true });
       report.textContent = result.count.toLocaleString('id-ID') + ' dokumen aktif siap diunduh sebagai PDF.';
     } catch (error) { report.textContent = error.message || 'PDF belum dapat dibuat. Coba lagi.'; }
     finally { exportingPdf = false; label.textContent = 'Unduh PDF'; report.hidden = tab !== 'active'; render(); }
   });
-  ['search','filter-bu','filter-status','filter-office','filter-from','filter-to'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', () => { documentPage = 1; render(); }));
-  function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; $('filter-office').value=''; $('filter-from').value=''; $('filter-to').value=''; render(); }
+  ['search','filter-bu','filter-status','filter-office','filter-from','filter-to'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', () => { listRequest++;documentPage=1;clearTimeout(filterTimer);filterTimer=setTimeout(()=>refresh().catch(error=>showToast(error.message)),id==='search'?300:0); }));
+  function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; $('filter-office').value=''; $('filter-from').value=''; $('filter-to').value=''; refresh().catch(error=>showToast(error.message)); }
   function newDocument() {
     if(!Akses.canWrite()) return showToast('Masuk dengan akun admin untuk menambah dokumen.');
     editingDocument = null;
@@ -186,7 +190,7 @@
     const doc = await repository.get(selectedId), form = $('document-form'); form.reset();
     editingDocument = { id: doc.id, revision: doc.revision };
     ['namaDokumen','tanggalMasuk','jenisDokumen','nomorDokumen','bu','asalDokumen','keperluan','noteDokumen'].forEach(field => { form.elements.namedItem(field).value = doc[field] || ''; });
-    updateOtherType(); $('doc-other-type').value = doc.jenisDokumenLainnya || ''; $('doc-date').max = doc.history[0]?.tanggalPerpindahan || '';
+    updateOtherType(); $('doc-other-type').value = doc.jenisDokumenLainnya || ''; $('doc-date').max = doc.tanggalPerpindahanPertama || '';
     $('document-form-kicker').textContent = doc.kode; $('document-dialog-title').textContent = 'Edit dokumen'; $('document-save').textContent = 'Simpan Perubahan';
     formError('document-error', ''); openDialog('document-dialog'); $('doc-name').focus();
   }
@@ -217,7 +221,7 @@
     finally { button.disabled = false; }
   });
   function renderDetail(doc) {
-    detailDocument = doc; historyPage = 1;
+    detailDocument = doc; historyPage = 1;historyRequest++;
     window.DataAdmin?.documentButton(doc);
     $('document-edit-success').hidden = true;
     $('detail-id').textContent = doc.kode; $('detail-title').textContent = doc.namaDokumen;
@@ -232,10 +236,10 @@
   }
   function renderHistory() {
     const doc = detailDocument; if (!doc) return;
-    const page = pages.range(doc.history.length, historyPage); historyPage = page.page;
-    $('history-count').textContent = `${doc.history.length} perpindahan`;
-    $('history').innerHTML = doc.history.length ? `<ol class="timeline">${[...doc.history].reverse().slice(page.start, page.end).map(event => `<li class="history-event"><div class="event-heading"><strong>${e(event.tahapan)}</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route"><span>${e(event.posisiSebelum || event.dari)}</span>${icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
-    pages.render($('history-pagination'), page, next => { historyPage = next; renderHistory(); $('history').scrollIntoView({block:'start'}); });
+    const page = pages.range(doc.historyTotal||0, historyPage); historyPage = page.page;
+    $('history-count').textContent = `${doc.historyTotal||0} perpindahan`;
+    $('history').innerHTML = doc.history.length ? `<ol class="timeline">${doc.history.map(event => `<li class="history-event"><div class="event-heading"><strong>${e(event.tahapan)}</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route"><span>${e(event.posisiSebelum || event.dari)}</span>${icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
+    pages.render($('history-pagination'), page, async next => { const id=selectedId,seq=++historyRequest;try{const h=await repository.historyPage(id,next);if(seq!==historyRequest||selectedId!==id)return;detailDocument={...detailDocument,...h};historyPage=h.historyPage;renderHistory();$('history').scrollIntoView({block:'start'});}catch(error){showToast(error.message);} });
   }
   async function showDetail(id) { const doc = await repository.get(id); selectedId = id; renderDetail(doc); openDialog('detail-dialog'); }
   $('new-movement').addEventListener('click', async () => {
@@ -265,7 +269,8 @@
   function updateDate() { $('today').dateTime = D.today(); $('today').textContent = dateText(D.today()); render(); }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDate(); });
   setInterval(updateDate, 60000);
-  document.addEventListener('akses:berubah',()=>refresh().catch(error=>showToast(error.message)));
+  window.addEventListener('hashchange',()=>refresh().catch(error=>showToast(error.message)));
+  document.addEventListener('akses:berubah',()=>{listRequest++;if(!window.Akses.profile){documents=[];snapshot={total:0,ringkasan:{}};render();}else refresh().catch(error=>showToast(error.message));});
   document.addEventListener('data:muat-ulang',()=>refresh().catch(error=>showToast(error.message)));
   $('refresh-data').addEventListener('click',()=>document.dispatchEvent(new CustomEvent('data:muat-ulang')));
   route(); fillStatuses(); updateDate(); refresh().catch(error => showToast(error.message));

@@ -84,7 +84,7 @@
     const client = await requireClient(write), {data,error} = await client.rpc(name,args);
     if (error) throw Object.assign(new Error(errorText(error)), {code: error.code});
     // PostgREST represents composite row results as arrays, even for one row.
-    const rows = ['simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess','simpan_jabatan','simpan_foto_profil','atur_hak_akses','simpan_tamu','simpan_catatan_admin','ubah_status_catatan'];
+    const rows = ['ubah_nama_akun','simpan_foto_karyawan','atur_masa_extra','simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess','simpan_jabatan','simpan_foto_profil','atur_hak_akses','simpan_tamu','simpan_catatan_admin','ubah_status_catatan','simpan_extra','catat_pemakaian_cuti'];
     if (rows.includes(name) && Array.isArray(data)) {
       if (data.length !== 1) throw new Error('Hasil penyimpanan belum dapat dipastikan. Muat ulang data sebelum mencoba lagi.');
       return data[0];

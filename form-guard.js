@@ -27,12 +27,12 @@ document.addEventListener('click',event=>{
  const b=event.target.closest('button,a');if(!b)return;
  if(b.matches('[data-logout],[data-open-profile]')&&!leave()){event.preventDefault();event.stopImmediatePropagation();return;}
  if(b.matches('[data-profile-tab],[data-access-cancel],#ga-users-refresh,#ga-profile-back')){
-  const root=b.matches('[data-access-cancel],#ga-users-refresh')?document.getElementById('ga-access-form'):document.getElementById('profile-page');
+  const root=b.matches('[data-access-cancel],#ga-users-refresh')?document.getElementById('ga-access-editor'):document.getElementById('profile-page');
   if(root&&!leave(root)){event.preventDefault();event.stopImmediatePropagation();}
  }
  if(b.id==='employee-photo-remove')forced.add(document.getElementById('employee-form'));
 },true);
-document.addEventListener('submit',event=>{if(event.target.id==='ga-users-search-form'&&!leave(document.getElementById('ga-access-form'))){event.preventDefault();event.stopImmediatePropagation();}},true);
+document.addEventListener('submit',event=>{if(event.target.id==='ga-users-search-form'&&!leave(document.getElementById('ga-access-editor'))){event.preventDefault();event.stopImmediatePropagation();}},true);
 let lastHash=location.hash;
 g.addEventListener('hashchange',event=>{if(!leave()){history.replaceState(null,'',location.pathname+location.search+lastHash);event.stopImmediatePropagation();return;}lastHash=location.hash;},true);
 g.addEventListener('beforeunload',event=>{if(forms().some(f=>visible(f)&&dirty(f))){event.preventDefault();event.returnValue='';}});

@@ -20,6 +20,7 @@
   <script defer src="form-guard.js"></script>
   <script defer src="akses.js"></script>
   <script defer src="tracking-store.js"></script>
+  <script defer src="foto-karyawan.js"></script>
   <script defer src="employee-store.js"></script>
   <script defer src="jabatan.js"></script>
   <script defer src="device-store.js"></script>
@@ -36,14 +37,18 @@
   <script defer src="profil-store.js"></script>
   <script defer src="profil.js"></script>
   <script defer src="agenda.js"></script>
+  <script defer src="cuti-store.js"></script>
+  <script defer src="cuti.js"></script>
   <script defer src="ekspor.js"></script>
   <link rel="stylesheet" href="pembaruan08.css">
+  <link rel="stylesheet" href="cuti.css">
+  <link rel="stylesheet" href="pembaruan14.css">
 </head>
 <body data-area="portal">
 <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title"><div class="auth-card">
 <img class="auth-logo" src="ga-logo.jpg" width="220" height="64" alt="General Affair Services"><span class="auth-kicker">CAMP &amp; FACILITY</span><h1 id="auth-title">Masuk ke Portal GA</h1><p id="auth-description">Gunakan akun kerja Anda untuk melanjutkan.</p>
 <p class="auth-error" id="auth-error" role="alert" hidden></p>
-<form id="login-form"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"><label for="login-password">Password</label><div class="auth-password"><input id="login-password" type="password" required autocomplete="current-password"><button id="auth-password-toggle" type="button">Lihat</button></div><button id="login-submit" type="submit" class="auth-submit" disabled>Masuk</button></form>
+<form id="login-form"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"><label for="login-password">Password</label><div class="auth-password"><input id="login-password" type="password" required autocomplete="current-password"><button id="auth-password-toggle" type="button">Lihat</button></div><p class="auth-password-help">Lupa kata sandi? Hubungi Administrator.</p><button id="login-submit" type="submit" class="auth-submit" disabled>Masuk</button></form>
 <div id="auth-setup" class="auth-setup" hidden><p>Jalankan SQL pemasangan, lalu isi URL proyek dan publishable key pada <strong>konfigurasi.js</strong>.</p></div>
 <button id="auth-preview" type="button" class="auth-preview" hidden>Lihat tampilan web</button><button id="auth-reset" type="button" class="auth-reset" data-logout hidden>Keluar / ganti akun</button>
 </div></section>
@@ -59,13 +64,14 @@
     <div class="nav-label">MENU UTAMA</div>
     <nav class="main-nav" aria-label="Navigasi utama">
       <a class="nav-item" href="#link-kerja" data-route="link-kerja"><span data-icon="grid"></span><span>Link Kerja</span></a>
-      <a class="nav-item" href="#karyawan" data-route="karyawan"><span data-icon="users"></span><span>Data Karyawan</span></a>
       <a class="nav-item active" href="#tracking" data-route="tracking" aria-current="page"><span data-icon="files"></span><span>Tracking Dokumen</span></a>
-      <a class="nav-item" href="#ht-hp" data-route="ht-hp"><span data-icon="monitor"></span><span>Data Perangkat</span></a>
       <a class="nav-item" href="#agenda" data-route="agenda" data-writer-menu><span data-icon="clock"></span><span>Tamu &amp; Catatan</span></a>
+      <a class="nav-item" href="#karyawan" data-route="karyawan"><span data-icon="users"></span><span>Data Karyawan</span></a>
+      <a class="nav-item" href="#ht-hp" data-route="ht-hp"><span data-icon="monitor"></span><span>Data Perangkat</span></a>
+      <a class="nav-item" href="#cuti" data-route="cuti" data-writer-menu><span data-icon="clock"></span><span>Tahunan &amp; Extra</span></a>
       <a class="nav-item" href="#mess" data-route="mess"><span data-icon="building"></span><span>Update Data Mess</span></a>
     </nav>
-    <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-controls="profile-page" aria-label="Buka Profil dan Pengaturan"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout>Keluar dari akun</button></div>
+    <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-controls="profile-page" aria-label="Buka Profil dan Pengaturan"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 17v3H4V4h6v3M9 12h12m-4-4 4 4-4 4"/></svg><span>Keluar dari akun</span></button></div>
   </aside>
   <div class="workspace">
     <header class="topbar">
@@ -124,6 +130,7 @@
 </div></section><section class="documents-panel mess-audit" data-super-admin hidden><div class="mess-upload-head"><div><h2>Pencarian mess · 24 jam terakhir</h2><p>Hanya terlihat oleh Super Admin.</p></div><button type="button" class="button button-secondary" id="mess-log-refresh">Muat ulang</button></div><div id="mess-log-results"></div><div class="table-footer"><span id="mess-log-count"></span><button id="mess-log-more" class="button button-secondary" type="button" hidden>Muat berikutnya</button></div></section>
 </section>
       <section class="tracking-page" id="agenda-page" hidden></section>
+      <section class="tracking-page cuti-page" id="cuti-page" hidden></section>
       <section class="tracking-page" id="profile-page" aria-label="Profil dan Pengaturan" hidden></section>
       <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services — halaman asli" src="link-kerja.html" loading="lazy"></iframe></section>
     </main>
@@ -156,7 +163,7 @@
   <dialog class="form-dialog" id="employee-dialog" aria-labelledby="employee-form-title">
     <div class="dialog-heading"><div><p class="dialog-kicker" id="employee-form-kicker">KARYAWAN BARU</p><h2 id="employee-form-title">Tambah karyawan</h2></div><button class="icon-button" type="button" data-close="employee-dialog" aria-label="Tutup formulir karyawan"><span data-icon="close"></span></button></div>
     <form id="employee-form"><div class="form-body"><p class="form-intro">Kolom bertanda <span class="required">*</span> wajib diisi.</p>
-      <div class="employee-photo-field"><span class="employee-avatar" id="employee-photo-preview" aria-hidden="true"><span data-icon="user"></span></span><div class="employee-photo-controls"><label for="employee-photo">Foto karyawan <span class="optional">opsional</span></label><input type="file" id="employee-photo" accept="image/jpeg,image/png,image/webp" aria-describedby="employee-photo-hint"><small id="employee-photo-hint">JPG, PNG, atau WebP. Maksimal 2 MB.</small><button class="button button-text" type="button" id="employee-photo-remove" hidden>Hapus foto pilihan</button><small id="employee-photo-status" role="status" aria-live="polite"></small></div></div>
+      <div class="employee-photo-field"><span class="employee-avatar" id="employee-photo-preview" aria-hidden="true"><span data-icon="user"></span></span><div class="employee-photo-controls"><label for="employee-photo">Foto karyawan <span class="optional">opsional</span></label><input type="file" id="employee-photo" accept="image/jpeg,image/png,image/webp" aria-describedby="employee-photo-hint"><small id="employee-photo-hint">JPG, PNG, atau WebP. Foto dikompres otomatis, maksimal unggahan 12 MB.</small><button class="button button-text" type="button" id="employee-photo-remove" hidden>Hapus foto pilihan</button><small id="employee-photo-status" role="status" aria-live="polite"></small></div></div>
       <div class="form-grid">
         <div class="field"><label for="employee-nik">NIK <span class="required">*</span></label><input id="employee-nik" name="nik" required maxlength="40" autocomplete="off" spellcheck="false"><small>Gunakan NIK yang tercatat di perusahaan.</small></div>
         <div class="field"><label for="employee-name">Nama karyawan <span class="required">*</span></label><input id="employee-name" name="nama" required maxlength="150" autocomplete="off"></div>

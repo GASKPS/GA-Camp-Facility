@@ -9,7 +9,7 @@
     const image = `<span class="employee-avatar" aria-hidden="true">${person.foto ? `<img src="${e(person.foto)}" alt="" loading="lazy">` : e(initials(person.nama))}</span>`;
     return zoom && person.foto ? `<button class="employee-photo-zoom" type="button" data-employee-action="photo" data-employee-id="${e(person.id)}" aria-label="Perbesar foto ${e(person.nama)}" aria-haspopup="dialog">${image}</button>` : image;
   };
-  let employees = [], photo = '', photoVersion = 0, editingEmployee = null;
+  let employees = [], photo = '', photoBlob=null, photoObjectUrl='', photoEdited=false, photoVersion = 0, editingEmployee = null, warnings=[], listRequest=0;
   let selectedEmployeeId = null, detailRequest = 0;
   function render() {
     const q = lower($('employee-search').value.trim());
@@ -19,9 +19,14 @@
       $('employee-results').innerHTML = `<div class="empty-state"><span class="empty-symbol">${icon('users')}</span><h2>${q ? 'Karyawan tidak ditemukan' : 'Belum ada karyawan'}</h2><p>${q ? 'Coba cari dengan nama, NIK, atau jabatan lainnya.' : 'Daftarkan karyawan sekali, lalu pilih namanya saat serah terima perangkat.'}</p><button class="button button-secondary" type="button" data-employee-action="${q ? 'reset' : 'new'}">${q ? 'Reset pencarian' : icon('plus') + 'Tambah Karyawan'}</button></div>`;
       return;
     }
-    $('employee-results').innerHTML = `<ul class="employee-grid" aria-label="Daftar karyawan">${results.map(person => `<li class="employee-card"><div class="employee-card-head">${avatar(person, true)}<div><h2><button class="employee-name-button" type="button" data-employee-action="detail" data-employee-id="${e(person.id)}" aria-haspopup="dialog" aria-controls="employee-detail-dialog" aria-label="Detail ${e(person.nama)} NIK ${e(person.nik)}">${e(person.nama)}</button></h2><span class="employee-nik">NIK ${e(person.nik)}</span></div></div><dl><dt>Jabatan</dt><dd>${e(person.jabatan)}</dd><dt>Golongan</dt><dd>${e(person.golongan || '—')}</dd><dt>No. HP</dt><dd>${e(person.noHp || '—')}</dd><dt>Kamar mess</dt><dd>${e(person.kamarMess || '—')}</dd></dl></li>`).join('')}</ul>`;
+    $('employee-results').innerHTML = `<ul class="employee-grid" aria-label="Daftar karyawan">${results.map(person => `<li class="employee-card"><div class="employee-card-head">${avatar(person, true)}<div><h2><button class="employee-name-button" type="button" data-employee-action="detail" data-employee-id="${e(person.id)}" aria-haspopup="dialog" aria-controls="employee-detail-dialog" aria-label="Detail ${e(person.nama)} NIK ${e(person.nik)}">${e(person.nama)}</button></h2><span class="employee-nik">NIK ${e(person.nik)}</span>${employeeWarning(person.id)}</div></div><dl><dt>Jabatan</dt><dd>${e(person.jabatan)}</dd><dt>Golongan</dt><dd>${e(person.golongan || '—')}</dd><dt>No. HP</dt><dd>${e(person.noHp || '—')}</dd><dt>Kamar mess</dt><dd>${e(person.kamarMess || '—')}</dd></dl></li>`).join('')}</ul>`;
   }
-  async function refresh() { employees = await repo.list(); render(); }
+  function employeeWarning(id){const w=warnings.find(v=>v.karyawan_id===id);if(!w)return '';const days=window.TrackingDomain.dayNumber(w.tanggal_hangus)-window.TrackingDomain.dayNumber(window.TrackingDomain.today());return `<span class="employee-balance-warning ${days<=7?'urgent':''}">${e(w.jenis)}: ${days===0?'hangus setelah hari ini':days+' hari lagi'}</span>`;}
+  async function refresh() {
+    if(location.hash!=='#karyawan')return;const seq=++listRequest;await window.Akses.ready;
+    const [people,alerts]=await Promise.all([repo.list({photos:true}),window.Akses.canWrite()?window.Akses.rpc('peringatan_saldo_karyawan'):Promise.resolve([])]);
+    if(seq!==listRequest||!window.Akses.profile)return;employees=people;warnings=window.Akses.canWrite()?alerts:[];render();
+  }
   async function showEmployee(id) {
     if (!id) return;
     selectedEmployeeId = id;
@@ -35,6 +40,8 @@
       if (request !== detailRequest || !$('employee-detail-dialog').open) return;
       $('employee-detail-title').textContent = person.nama;
       $('employee-detail-content').innerHTML = `<div class="employee-profile-head">${avatar(person, true)}<div><strong>NIK ${e(person.nik)}</strong><span>${e(person.jabatan)}</span></div></div><dl class="employee-profile-fields"><dt>Golongan</dt><dd>${e(person.golongan || '—')}</dd><dt>Nomor HP</dt><dd>${e(person.noHp || '—')}</dd><dt>Kamar mess</dt><dd>${e(person.kamarMess || '—')}</dd></dl><section class="employee-assets" aria-labelledby="employee-assets-title"><h3 id="employee-assets-title">Aset yang dipegang</h3>${assets.length ? `<div class="employee-asset-head" aria-hidden="true"><span>Jenis perangkat</span><span>Nomor seri</span></div><ul class="employee-asset-list" aria-label="Jenis perangkat dan nomor seri">${assets.map(asset => `<li><span>${e(asset.jenis)}</span><strong>${e(asset.nomor)}</strong></li>`).join('')}</ul>` : '<p class="employee-detail-message">Belum ada aset yang dipegang.</p>'}</section>`;
+      const content=$('employee-detail-content'), profile=content.innerHTML;
+      content.innerHTML=`<div class="employee-detail-tabs" role="tablist" aria-label="Detail karyawan"><button type="button" role="tab" id="employee-tab-profile" aria-selected="true" aria-controls="employee-panel-profile" data-employee-tab="profile">Profil &amp; Aset</button>${window.Akses.canWrite()?'<button type="button" role="tab" id="employee-tab-balance" tabindex="-1" aria-selected="false" aria-controls="employee-panel-balance" data-employee-tab="balance">Tahunan &amp; Extra</button>':''}</div><div id="employee-panel-profile" role="tabpanel" aria-labelledby="employee-tab-profile">${profile}</div><div id="employee-panel-balance" role="tabpanel" aria-labelledby="employee-tab-balance" hidden></div>`;
       $('employee-detail-edit').hidden = !window.Akses.superAdmin() || !person.aktif;
       window.DataAdmin?.employeeButton(person);
     } catch (error) {
@@ -42,6 +49,19 @@
       $('employee-detail-content').innerHTML = `<p class="form-error" role="alert">${e(error.message)}</p><button class="button button-secondary" type="button" data-employee-action="retry-detail">Coba lagi</button>`;
     }
   }
+  async function employeeTab(tab){
+    if(tab==='balance'&&!window.Akses.canWrite())return;
+    document.querySelectorAll('[data-employee-tab]').forEach(b=>{const active=b.dataset.employeeTab===tab;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;});
+    $('employee-panel-profile').hidden=tab!=='profile';$('employee-panel-balance').hidden=tab!=='balance';
+    const person=employees.find(p=>p.id===selectedEmployeeId);$('employee-detail-edit').hidden=tab!=='profile'||!window.Akses.superAdmin()||person?.aktif===false;
+    if(tab!=='balance')return;const id=selectedEmployeeId,panel=$('employee-panel-balance');panel.innerHTML='<p class="employee-detail-message">Memuat saldo…</p>';
+    try{const snapshot=await window.Akses.rpc('saldo_karyawan',{p_id:id});if(selectedEmployeeId!==id||!panel.isConnected||!window.Akses.canWrite())return;
+      const D=window.TrackingDomain,today=snapshot.hari_ini,rows=snapshot.saldo;const available=type=>rows.filter(r=>r.jenis===type&&r.tanggal_perolehan<=today&&(!r.tanggal_hangus||r.tanggal_hangus>=today)).reduce((n,r)=>n+Math.round(Number(r.sisa)*100),0)/100;
+      panel.innerHTML=`<div class="employee-balance-summary"><div><span>Tahunan tersedia</span><strong>${available('Tahunan').toLocaleString('id-ID')} hari</strong></div><div><span>Extra tersedia</span><strong>${available('Extra').toLocaleString('id-ID')} hari</strong></div></div><p class="employee-detail-message">Pencatatan izin, pemberian, dan penjualan saldo dilakukan di menu Tahunan &amp; Extra.</p>${rows.length?rows.map(r=>{const days=r.tanggal_hangus?D.dayNumber(r.tanggal_hangus)-D.dayNumber(today):null;return `<div class="employee-credit"><div><strong>${e(r.jenis)}${r.tahun_hak?' · Tahun ke-'+r.tahun_hak:''}</strong><small>Diperoleh ${e(window.PortalUI.dateText(r.tanggal_perolehan))}</small></div><div><strong>${Number(r.sisa)} hari</strong><small>${days===null?'Masa berlaku belum diatur':days<0?'Hangus · '+e(window.PortalUI.dateText(r.tanggal_hangus)):e(window.PortalUI.dateText(r.tanggal_hangus))+' · '+days+' hari lagi'}</small></div></div>`;}).join(''):'<p class="employee-detail-message">Saldo belum dicatat.</p>'}`;
+    }catch(error){if(selectedEmployeeId===id&&panel.isConnected)panel.innerHTML=`<p class="form-error" role="alert">${e(error.message)}</p>`;}
+  }
+  $('employee-detail-content').addEventListener('click',event=>{const b=event.target.closest('[data-employee-tab]');if(b)employeeTab(b.dataset.employeeTab);});
+  $('employee-detail-content').addEventListener('keydown',event=>{const b=event.target.closest('[data-employee-tab]');if(!b||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)||!$('employee-tab-balance'))return;event.preventDefault();const tab=event.key==='Home'?'profile':event.key==='End'?'balance':b.dataset.employeeTab==='profile'?'balance':'profile';employeeTab(tab);$('employee-tab-'+tab).focus();});
   $('employee-detail-dialog').addEventListener('close', () => { selectedEmployeeId = null; detailRequest++; });
   $('employee-detail-edit').addEventListener('click', async () => {
     const button = $('employee-detail-edit');
@@ -58,7 +78,7 @@
     $('employee-photo-remove').hidden = !photo;
   }
   function clearPhoto() {
-    photoVersion += 1; photo = ''; $('employee-photo').value = '';
+    photoVersion += 1;if(photoObjectUrl)URL.revokeObjectURL(photoObjectUrl);photoObjectUrl='';photoBlob=null;photoEdited=true;photo = ''; $('employee-photo').value = '';
     $('employee-photo-status').textContent = ''; $('employee-save').disabled = false; renderPhoto();
   }
   async function fillJobs(selected) {
@@ -79,7 +99,7 @@
     if (!window.Akses.superAdmin()) return;
     const employee = await repo.get(id);
     $('employee-form').reset(); clearPhoto(); formError('employee-form-error', '');
-    editingEmployee = { id, revision: employee.revision };
+    editingEmployee = { id, revision: employee.revision, oldPhotoPath:employee.fotoPath };photoEdited=false;
     await fillJobs(employee.jabatanId);
     ['nik','nama','golongan','noHp','kamarMess'].forEach(field => { $('employee-form').elements.namedItem(field).value = employee[field] || ''; });
     photo = employee.foto || ''; renderPhoto();
@@ -100,37 +120,18 @@
   $('employee-name').addEventListener('input', renderPhoto);
   $('employee-photo-remove').addEventListener('click', clearPhoto);
   $('employee-dialog').addEventListener('close', clearPhoto);
-  $('employee-photo').addEventListener('change', async event => {
-    const file = event.target.files[0], version = ++photoVersion;
-    photo = ''; renderPhoto(); formError('employee-form-error', '');
-    $('employee-photo-status').textContent = ''; $('employee-save').disabled = false;
-    if (!file) return;
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
-      event.target.value = ''; formError('employee-form-error', 'Pilih foto JPG, PNG, atau WebP maksimal 2 MB.'); return;
-    }
-    $('employee-save').disabled = true; $('employee-photo-status').textContent = 'Menyiapkan foto…';
-    try {
-      const data = await new Promise((resolve, reject) => {
-        const reader = new FileReader(); reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('Foto tidak dapat dibaca. Silakan pilih ulang.')); reader.readAsDataURL(file);
-      });
-      await new Promise((resolve, reject) => {
-        const image = new Image(); image.onload = () => resolve();
-        image.onerror = () => reject(new Error('Berkas tidak dapat ditampilkan sebagai foto. Pilih foto lain.')); image.src = data;
-      });
-      if (version !== photoVersion) return;
-      photo = data; renderPhoto(); $('employee-photo-status').textContent = 'Foto siap digunakan.';
-    } catch (error) {
-      if (version !== photoVersion) return;
-      event.target.value = ''; formError('employee-form-error', error.message); $('employee-photo-status').textContent = '';
-    } finally { if (version === photoVersion) $('employee-save').disabled = false; }
+  $('employee-photo').addEventListener('change',async event=>{
+    const file=event.target.files[0],version=++photoVersion;if(!file)return;formError('employee-form-error','');$('employee-save').disabled=true;$('employee-photo-status').textContent='Mengompres foto…';
+    try{const blob=await window.FotoKaryawan.prepare(file);if(version!==photoVersion)return;if(photoObjectUrl)URL.revokeObjectURL(photoObjectUrl);photoBlob=blob;photoEdited=true;photoObjectUrl=URL.createObjectURL(blob);photo=photoObjectUrl;renderPhoto();$('employee-photo-status').textContent='Siap diunggah · '+Math.ceil(blob.size/1024)+' KB. Foto asli di perangkat Anda tetap sama.';}
+    catch(error){if(version===photoVersion){event.target.value='';formError('employee-form-error',error.message);$('employee-photo-status').textContent='';}}
+    finally{if(version===photoVersion)$('employee-save').disabled=false;}
   });
   $('employee-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = $('employee-save');
     if (!window.Akses.superAdmin() || !form.reportValidity() || button.disabled) return;
     button.disabled = true;
     try {
-      const editing = editingEmployee, data = { ...Object.fromEntries(new FormData(form)), foto: photo };
+      const editing = editingEmployee, data = { ...Object.fromEntries(new FormData(form)), photoEdited, photoBlob, oldPhotoPath:editingEmployee?.oldPhotoPath||'' };
       const employee = editing ? await repo.update(editing.id, { ...data, expectedRevision: editing.revision }) : await repo.create(data);
       window.FormGuard?.clean($('employee-form')); closeDialog('employee-dialog'); $('employee-search').value = ''; await refresh();
       document.dispatchEvent(new CustomEvent('employees:changed'));
@@ -192,6 +193,7 @@
       const detail = $(prefix + '-detail'); detail.hidden = !person;
       detail.innerHTML = person ? `${icon('user')}<div><strong>${e(optionName(person))}</strong><span>${e(metadata(person))}</span></div>` : '';
       close();
+      host.dispatchEvent(new CustomEvent('karyawan:dipilih',{bubbles:true,detail:{id:selected}}));
     }
     input.addEventListener('focus', displayOptions);
     input.addEventListener('click', () => { if (panel.hidden) displayOptions(); });
@@ -234,6 +236,8 @@
   }
   window.EmployeeUI = Object.freeze({ createPicker });
   refresh().catch(error => showToast(error.message));
-document.addEventListener('akses:berubah',()=>refresh().catch(error=>showToast(error.message)));
+document.addEventListener('akses:berubah',()=>{listRequest++;if(!window.Akses.profile){employees=[];warnings=[];render();$('employee-detail-dialog').close();}else{if(!window.Akses.canWrite()){$('employee-detail-dialog').close();warnings=[];}refresh().catch(error=>showToast(error.message));}});
+  window.addEventListener('hashchange',()=>refresh().catch(error=>showToast(error.message)));
+  document.addEventListener('employees:changed',()=>refresh().catch(error=>showToast(error.message)));
   document.addEventListener('data:muat-ulang',()=>refresh().catch(error=>showToast(error.message)));
 })();

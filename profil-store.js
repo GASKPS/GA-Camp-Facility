@@ -75,5 +75,16 @@
     if (!A.superAdmin()) throw new Error('Hanya Super Admin yang boleh mengatur hak akses.');
     return A.rpc('atur_hak_akses', { p_id: person.id, p_versi: person.versi, p_peran: values.peran, p_aktif: values.aktif, p_akses_portal: values.aksesPortal, p_akses_mess: values.aksesMess });
   }
-  g.ProfilStore = Object.freeze({ roles, validatePassword, changePassword, sendCode, signedPhoto, preparePhoto, savePhoto, users, setAccess });
+  async function rename(person, name) {
+    if (!A.administrator()) throw new Error('Hanya Administrator yang boleh mengubah Nama Akun.');
+    return A.rpc('ubah_nama_akun', {p_id:person.id,p_versi:person.versi,p_nama:name.trim()}, true);
+  }
+  async function resetAccountPassword(person, password, confirm) {
+    if (!A.administrator()) throw new Error('Hanya Administrator yang boleh mengatur kata sandi akun.');
+    validatePassword(password, confirm);
+    const client=await A.requireClient(), {data,error}=await client.functions.invoke('atur-kata-sandi-akun',{body:{id:person.id,password}});
+    if(error){let message='Kata sandi belum dapat diperbarui. Pastikan fungsi atur-kata-sandi-akun sudah dipasang di Supabase.';try{message=(await error.context.json()).error||message;}catch{}throw new Error(message);}
+    if(!data?.berhasil)throw new Error(data?.error||'Server belum mengonfirmasi perubahan kata sandi.');
+  }
+  g.ProfilStore = Object.freeze({ roles, validatePassword, changePassword, sendCode, signedPhoto, preparePhoto, savePhoto, users, setAccess, rename, resetAccountPassword });
 })(window);

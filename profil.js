@@ -12,8 +12,9 @@
       <div class="ga-profile-surface">
       <div class="ga-profile-tabs" role="tablist" aria-label="Pengaturan akun">
         <button class="ga-profile-tab" id="ga-tab-profile" type="button" role="tab" aria-selected="true" aria-controls="ga-panel-profile" data-profile-tab="profile">Profil Saya</button>
-        <button class="ga-profile-tab" id="ga-tab-password" type="button" role="tab" aria-selected="false" aria-controls="ga-panel-password" tabindex="-1" data-profile-tab="password">Ganti Password</button>
+        <button class="ga-profile-tab" id="ga-tab-password" type="button" role="tab" aria-selected="false" aria-controls="ga-panel-password" tabindex="-1" data-profile-tab="password">Ganti Kata Sandi</button>
         <button class="ga-profile-tab" id="ga-tab-users" type="button" role="tab" aria-selected="false" aria-controls="ga-panel-users" tabindex="-1" data-profile-tab="users" hidden>Hak Akses</button>
+        <button class="ga-profile-tab" id="ga-tab-download" type="button" role="tab" aria-selected="false" aria-controls="ga-panel-download" tabindex="-1" data-profile-tab="download" hidden>Download</button>
       </div>
       <div id="ga-panel-profile" class="ga-profile-body" role="tabpanel" aria-labelledby="ga-tab-profile">
         <div class="ga-profile-person"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><div><strong id="ga-profile-name"></strong><span class="ga-profile-email" id="ga-profile-email"></span><span class="ga-profile-role" id="ga-profile-role"></span></div></div>
@@ -24,7 +25,7 @@
         </section>
       </div>
       <div id="ga-panel-password" class="ga-profile-body" role="tabpanel" aria-labelledby="ga-tab-password" hidden>
-        <section class="ga-profile-section" aria-labelledby="ga-password-title"><h3 id="ga-password-title">Ganti password</h3>
+        <section class="ga-profile-section" aria-labelledby="ga-password-title"><h3 id="ga-password-title">Ganti kata sandi</h3>
           <form id="ga-password-form"><div class="ga-profile-grid"><div class="ga-profile-field"><label class="ga-profile-label" for="ga-password-new">Password baru</label><input id="ga-password-new" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="ga-password-help"></div><div class="ga-profile-field"><label class="ga-profile-label" for="ga-password-confirm">Konfirmasi password</label><input id="ga-password-confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></div></div>
           <p id="ga-password-help" class="ga-profile-help">Minimal 8 karakter. Password baru berlaku untuk Portal GA dan Web Mess.</p><label class="ga-access-check"><input type="checkbox" id="ga-password-show">Tampilkan password</label>
           <div class="ga-profile-code" id="ga-password-code-box" hidden><p class="ga-profile-help">Konfirmasi akun diperlukan. Minta kode, lalu masukkan kode yang diterima melalui email akun.</p><button type="button" class="ga-profile-button" id="ga-password-send-code">Kirim kode verifikasi</button><label class="ga-profile-label" for="ga-password-code">Kode verifikasi</label><input id="ga-password-code" autocomplete="one-time-code" inputmode="numeric" maxlength="32"></div>
@@ -44,8 +45,13 @@
       <label class="ga-access-check"><input id="ga-access-active" type="checkbox">Akun aktif</label><label class="ga-access-check"><input id="ga-access-portal" type="checkbox">Akses Portal GA</label><label class="ga-access-check"><input id="ga-access-mess" type="checkbox">Akses Web Mess</label>
       <p class="ga-profile-help" id="ga-access-help"></p><p class="ga-profile-message" id="ga-access-message" role="status" hidden></p>
       <div class="ga-profile-actions"><button class="ga-profile-button" type="button" data-access-cancel>Batal</button><button class="ga-profile-button primary" id="ga-access-save" type="submit">Simpan hak akses</button></div>
-    </form>        </section></div>
+    </form>
+    <div id="ga-admin-account-tools" hidden>
+      <form id="ga-rename-form" class="ga-account-tool"><h3>Nama Akun</h3><p class="ga-profile-help">Nama petugas yang muncul di portal. Email untuk masuk dan data karyawan tetap terpisah.</p><label class="ga-profile-label" for="ga-rename-name">Nama Akun / username</label><input id="ga-rename-name" required maxlength="150" autocomplete="off"><div class="ga-profile-actions"><button class="ga-profile-button primary" type="submit">Simpan Nama Akun</button></div><p id="ga-rename-message" class="ga-profile-message" role="status" hidden></p></form>
+      <form id="ga-admin-password-form" class="ga-account-tool"><h3>Atur kata sandi akun ini</h3><p class="ga-profile-help">Tidak membutuhkan kata sandi lama. Berikan kata sandi sementara kepada pemilik akun, lalu minta ia menggantinya melalui Profil &amp; Pengaturan.</p><label class="ga-profile-label" for="ga-admin-password">Kata sandi baru</label><input id="ga-admin-password" type="password" required minlength="8" maxlength="128" autocomplete="new-password"><label class="ga-profile-label" for="ga-admin-confirm">Konfirmasi kata sandi</label><input id="ga-admin-confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password"><label class="ga-access-check"><input id="ga-admin-password-agree" type="checkbox" required> Saya memastikan akun yang dipilih sudah benar.</label><div class="ga-profile-actions"><button class="ga-profile-button primary" type="submit">Ganti kata sandi akun ini</button></div><p id="ga-admin-password-message" class="ga-profile-message" role="status" hidden></p></form>
+    </div></section></div>
       </div>
+      <div id="ga-panel-download" class="ga-profile-body" role="tabpanel" aria-labelledby="ga-tab-download" hidden></div>
       </div>
     </section>`;
   let currentTab = 'profile', users = [], userOffset = 0, userQuery = '', userRequest = 0, editing = null;
@@ -81,6 +87,10 @@
     $('ga-profile-name').textContent = p?.nama || 'Profil saya'; $('ga-profile-email').textContent = p?.email || '';
     $('ga-profile-role').textContent = S.roles[p?.peran] || '';
     $('ga-tab-users').hidden = !A.superAdmin();
+    $('ga-tab-download').hidden = !A.canWrite();
+    $('ga-admin-account-tools').hidden = !A.administrator();
+    if(!A.administrator()){$('ga-admin-password-form').reset();$('ga-rename-form').reset();}
+    if(!A.canWrite()&&currentTab==='download')selectTab('profile');
     [...$('ga-access-role').options].forEach(o=>{o.disabled=!A.administrator()&&['administrator','super_admin'].includes(o.value);o.hidden=o.disabled;});
     document.dispatchEvent(new CustomEvent('profil:siap'));
     if (!A.superAdmin() && currentTab === 'users') selectTab('profile');
@@ -102,14 +112,14 @@
   }
   function closeAccess() {
     editing = null; $('ga-access-editor').hidden = true;
-    $('ga-access-form').reset(); message('ga-access-message', '');
+    $('ga-access-form').reset(); $('ga-rename-form').reset(); $('ga-admin-password-form').reset(); message('ga-access-message', '');message('ga-rename-message','');message('ga-admin-password-message','');
   }
   function selectTab(tab) {
     if(tab!==currentTab && window.FormGuard && !FormGuard.leave($('ga-panel-'+currentTab)))return;
-    if (!['profile', 'password', 'users'].includes(tab) || (tab === 'users' && !A.superAdmin())) return;
+    if (!['profile', 'password', 'users', 'download'].includes(tab) || (tab === 'users' && !A.superAdmin()) || (tab==='download'&&!A.canWrite())) return;
     if (currentTab === 'password' && tab !== 'password' && !passwordBusy) resetPassword();
     currentTab = tab;
-    for (const name of ['profile', 'password', 'users']) { $('ga-tab-' + name).setAttribute('aria-selected', String(tab === name)); $('ga-tab-' + name).tabIndex = tab === name ? 0 : -1; $('ga-panel-' + name).hidden = tab !== name; }
+    for (const name of ['profile', 'password', 'users', 'download']) { $('ga-tab-' + name).setAttribute('aria-selected', String(tab === name)); $('ga-tab-' + name).tabIndex = tab === name ? 0 : -1; $('ga-panel-' + name).hidden = tab !== name; }
     if (tab === 'users') loadUsers(true);
   }
   async function preparePage() {
@@ -141,14 +151,14 @@
   }
   document.querySelectorAll('[data-open-profile]').forEach(button => button.addEventListener('click', openProfile));
   $('ga-profile-back').addEventListener('click', () => { location.hash = previousRoute; });
-  document.querySelectorAll('[data-access-cancel]').forEach(button => button.addEventListener('click', () => { if (!accessBusy) { closeAccess(); $('ga-users-query').focus(); } }));
+  document.querySelectorAll('[data-access-cancel]').forEach(button => button.addEventListener('click', () => { if (!accessBusy && (!window.FormGuard||FormGuard.leave($('ga-access-editor')))) { closeAccess(); $('ga-users-query').focus(); } }));
   window.addEventListener('hashchange', routeProfile);
   document.querySelectorAll('[data-profile-tab]').forEach(button => {
     button.addEventListener('click', () => selectTab(button.dataset.profileTab));
     button.addEventListener('keydown', event => {
       if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
       event.preventDefault();
-      const tabs = A.superAdmin() ? ['profile','password','users'] : ['profile','password'], index = tabs.indexOf(currentTab);
+      const tabs = ['profile','password',...(A.superAdmin()?['users']:[]),...(A.canWrite()?['download']:[])], index = tabs.indexOf(currentTab);
       const tab = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1) : tabs[(index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
       selectTab(tab); $('ga-tab-' + tab).focus();
     });
@@ -190,7 +200,7 @@
   async function loadUsers(reset) {
     if (!A.superAdmin()) return;
     const request = ++userRequest;
-    if (reset) { if (!accessBusy) closeAccess(); userQuery = $('ga-users-query').value.trim(); userOffset = 0; users = []; drawUsers(); }
+    if (reset) { if(accessBusy||window.FormGuard&&!FormGuard.leave($('ga-access-editor')))return; closeAccess(); userQuery = $('ga-users-query').value.trim(); userOffset = 0; users = []; drawUsers(); }
     const offset = userOffset; message('ga-users-message', 'Memuat akun…'); $('ga-users-more').disabled = true; $('ga-users-more').hidden = true;
     try {
       const rows = await S.users(userQuery, offset);
@@ -209,9 +219,11 @@
   }
   $('ga-users-list').addEventListener('click', event => {
     const button = event.target.closest('[data-edit-access]'); if (!button || !A.superAdmin() || accessBusy) return;
-    if (window.FormGuard && !FormGuard.leave($('ga-access-form'))) return;
+    if (window.FormGuard && !FormGuard.leave($('ga-access-editor'))) return;
     editing = users.find(p => p.id === button.dataset.editAccess); if (!editing) return;
     if (!A.administrator() && ['administrator','super_admin'].includes(editing.peran)) return;
+    $('ga-rename-name').value=editing.nama; $('ga-admin-password-form').reset();message('ga-rename-message','');message('ga-admin-password-message','');
+    $('ga-admin-account-tools').hidden=!A.administrator();
     $('ga-access-name').textContent = editing.nama; $('ga-access-email').textContent = editing.email;
     $('ga-access-role').value = editing.peran; $('ga-access-active').checked = editing.aktif; $('ga-access-portal').checked = editing.akses_portal; $('ga-access-mess').checked = editing.akses_mess;
     roleHelp(); message('ga-access-message', ''); $('ga-access-editor').hidden = false; $('ga-access-title').focus(); window.FormGuard?.clean($('ga-access-form'));
@@ -219,6 +231,7 @@
   $('ga-access-role').addEventListener('change', roleHelp);
   $('ga-access-form').addEventListener('submit', async event => {
     event.preventDefault(); if (accessBusy || !editing || !A.superAdmin()) return;
+    if(window.FormGuard&&!FormGuard.leave($('ga-admin-account-tools')))return;
     accessBusy = true; $('ga-access-save').disabled = true; message('ga-access-message', '');
     try {
       const saved = await S.setAccess(editing, { peran: $('ga-access-role').value, aktif: $('ga-access-active').checked, aksesPortal: $('ga-access-portal').checked, aksesMess: $('ga-access-mess').checked });
@@ -227,6 +240,18 @@
       if (saved.id === A.profile.id) await A.refreshProfile();
     } catch (error) { message('ga-access-message', errorMessage(error), 'error'); }
     finally { accessBusy = false; $('ga-access-save').disabled = false; }
+  });
+  $('ga-rename-form').addEventListener('submit',async event=>{
+    event.preventDefault();const form=event.currentTarget;if(accessBusy||!editing||!A.administrator()||!form.reportValidity())return;
+    accessBusy=true;const b=form.querySelector('[type=submit]');b.disabled=true;message('ga-rename-message','');
+    try{const saved=await S.rename(editing,$('ga-rename-name').value);editing=saved;users=users.map(p=>p.id===saved.id?saved:p);drawUsers();$('ga-access-name').textContent=saved.nama;window.FormGuard?.clean(form);message('ga-rename-message','Nama Akun tersimpan. Catatan petugas sebelumnya tetap memakai nama saat dicatat.','success');if(saved.id===A.profile.id)await A.refreshProfile();}
+    catch(error){message('ga-rename-message',errorMessage(error),'error');}finally{accessBusy=false;b.disabled=false;}
+  });
+  $('ga-admin-password-form').addEventListener('submit',async event=>{
+    event.preventDefault();const form=event.currentTarget;if(accessBusy||!editing||!A.administrator()||!form.reportValidity())return;
+    accessBusy=true;const b=form.querySelector('[type=submit]');b.disabled=true;message('ga-admin-password-message','');
+    try{await S.resetAccountPassword(editing,$('ga-admin-password').value,$('ga-admin-confirm').value);form.reset();window.FormGuard?.clean(form);message('ga-admin-password-message','Kata sandi akun berhasil diganti. Sampaikan kepada pemilik akun melalui jalur yang aman.','success');}
+    catch(error){message('ga-admin-password-message',errorMessage(error),'error');}finally{accessBusy=false;b.disabled=false;}
   });
   document.addEventListener('akses:berubah', account);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && A.profile && !photoBusy && !passwordBusy && !accessBusy) A.refreshProfile().catch(() => {}); });
