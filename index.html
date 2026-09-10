@@ -7,42 +7,48 @@
   <meta name="description" content="Portal kerja GA Services untuk data karyawan, tracking dokumen, serah terima perangkat, serta Link Kerja.">
   <title>Tracking Dokumen · GA Services</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="portal.css">
-  <link rel="stylesheet" href="devices.css">
-  <link rel="stylesheet" href="employees.css">
-  <link rel="stylesheet" href="skc.css">
-  <link rel="stylesheet" href="akses.css">
-  <link rel="stylesheet" href="mess-admin.css">
-  <link rel="stylesheet" href="profil.css">
-  <link rel="stylesheet" href="portal-polish.css">
-  <link rel="stylesheet" href="paginasi.css">
-  <script defer src="konfigurasi.js"></script>
-  <script defer src="form-guard.js"></script>
-  <script defer src="akses.js"></script>
-  <script defer src="tracking-store.js"></script>
-  <script defer src="foto-karyawan.js"></script>
-  <script defer src="employee-store.js"></script>
-  <script defer src="jabatan.js"></script>
-  <script defer src="device-store.js"></script>
-  <script defer src="skc-store.js"></script>
-  <script defer src="tracking-pdf.js"></script>
-  <script defer src="paginasi.js"></script>
-  <script defer src="portal.js"></script>
-  <script defer src="data-admin.js"></script>
-  <script defer src="employees.js"></script>
-  <script defer src="devices.js"></script>
-  <script defer src="skc.js"></script>
-  <script defer src="mess-import.js"></script>
-  <script defer src="mess-admin.js"></script>
-  <script defer src="profil-store.js"></script>
-  <script defer src="profil.js"></script>
-  <script defer src="agenda.js"></script>
-  <script defer src="cuti-store.js"></script>
-  <script defer src="cuti.js"></script>
-  <script defer src="ekspor.js"></script>
-  <link rel="stylesheet" href="pembaruan08.css">
-  <link rel="stylesheet" href="cuti.css">
-  <link rel="stylesheet" href="pembaruan14.css">
+  <script src="tema.js?v=15"></script>
+  <link rel="stylesheet" href="portal.css?v=15">
+  <link rel="stylesheet" href="devices.css?v=15">
+  <link rel="stylesheet" href="employees.css?v=15">
+  <link rel="stylesheet" href="skc.css?v=15">
+  <link rel="stylesheet" href="akses.css?v=15">
+  <link rel="stylesheet" href="mess-admin.css?v=15">
+  <link rel="stylesheet" href="profil.css?v=15">
+  <link rel="stylesheet" href="portal-polish.css?v=15">
+  <link rel="stylesheet" href="paginasi.css?v=15">
+  <script defer src="konfigurasi.js?v=15"></script>
+  <script defer src="form-guard.js?v=15"></script>
+  <script defer src="akses.js?v=15"></script>
+  <script defer src="preferensi.js?v=15"></script>
+  <script defer src="link-store.js?v=15"></script>
+  <script defer src="tracking-store.js?v=15"></script>
+  <script defer src="foto-karyawan.js?v=15"></script>
+  <script defer src="employee-store.js?v=15"></script>
+  <script defer src="jabatan.js?v=15"></script>
+  <script defer src="device-store.js?v=15"></script>
+  <script defer src="skc-store.js?v=15"></script>
+  <script defer src="tracking-pdf.js?v=15"></script>
+  <script defer src="paginasi.js?v=15"></script>
+  <script defer src="portal.js?v=15"></script>
+  <script defer src="data-admin.js?v=15"></script>
+  <script defer src="employees.js?v=15"></script>
+  <script defer src="devices.js?v=15"></script>
+  <script defer src="skc.js?v=15"></script>
+  <script defer src="mess-import.js?v=15"></script>
+  <script defer src="mess-admin.js?v=15"></script>
+  <script defer src="profil-store.js?v=15"></script>
+  <script defer src="profil.js?v=15"></script>
+  <script defer src="agenda.js?v=15"></script>
+  <script defer src="cuti-store.js?v=15"></script>
+  <script defer src="cuti.js?v=15"></script>
+  <script defer src="ekspor.js?v=15"></script>
+  <link rel="stylesheet" href="pembaruan08.css?v=15">
+  <link rel="stylesheet" href="cuti.css?v=15">
+  <link rel="stylesheet" href="pembaruan14.css?v=15">
+  <link rel="stylesheet" href="agenda.css?v=15">
+  <link rel="stylesheet" href="pembaruan15.css?v=15">
+  <link rel="stylesheet" href="tema.css?v=15">
 </head>
 <body data-area="portal">
 <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title"><div class="auth-card">
@@ -76,7 +82,7 @@
   <div class="workspace">
     <header class="topbar">
       <div class="topbar-left"><button class="icon-button mobile-only" id="open-menu" type="button" aria-label="Buka menu utama" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span></button><span class="breadcrumb-root">GA Services</span><span class="breadcrumb-separator" aria-hidden="true">/</span><strong id="page-label">Tracking Dokumen</strong></div>
-      <div class="topbar-right"><time id="today"></time><button type="button" class="sync-button" id="refresh-data" title="Muat data terbaru">Muat ulang</button><button type="button" class="mobile-profile" data-open-profile aria-label="Buka Profil dan Pengaturan" aria-controls="profile-page"><span class="account-avatar" data-account-avatar aria-hidden="true"></span></button></div>
+      <div class="topbar-right"><button type="button" class="icon-button portal-theme-toggle" data-theme-toggle aria-label="Gunakan mode gelap" title="Gunakan mode gelap"></button><time id="today"></time><button type="button" class="sync-button" id="refresh-data" title="Muat data terbaru">Muat ulang</button><button type="button" class="mobile-profile" data-open-profile aria-label="Buka Profil dan Pengaturan" aria-controls="profile-page"><span class="account-avatar" data-account-avatar aria-hidden="true"></span></button></div>
     </header>
     <main id="main-content" tabindex="-1">
       <section class="tracking-page" id="tracking-page" aria-labelledby="tracking-title">
@@ -104,7 +110,7 @@
       <section class="tracking-page employees-page" id="employees-page" aria-labelledby="employees-title" hidden>
         <div class="page-heading"><div><p class="page-kicker">DIREKTORI</p><h1 id="employees-title">Data karyawan</h1><p class="page-description">Daftar karyawan untuk serah terima perangkat dan pengambilan SKC.</p></div><div class="heading-actions"><button class="button button-secondary" type="button" data-manage-jobs data-super-admin hidden>Kelola Jabatan</button><button class="button button-primary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div></div>
         <div class="preview-notice" data-preview-notice hidden><span data-icon="info"></span><p>Pratinjau tampilan. Login dan penyimpanan aktif setelah proyek Supabase baru dihubungkan.</p></div>
-        <div class="employee-toolbar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="employee-search">Cari nama, NIK, atau jabatan karyawan</label><input id="employee-search" type="search" placeholder="Cari nama, NIK, atau jabatan…" autocomplete="off"></div><div class="filter-select"><label for="employee-active-filter">Status data</label><select id="employee-active-filter"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div><span id="employee-result-count" role="status" aria-live="polite">0 karyawan</span></div>
+        <div class="employee-toolbar"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="employee-search">Cari nama, NIK, atau jabatan karyawan</label><input id="employee-search" type="search" placeholder="Cari nama, NIK, atau jabatan…" autocomplete="off"></div><div class="filter-select"><label for="employee-active-filter">Status data</label><select id="employee-active-filter"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div><div class="employee-view-switch" role="group" aria-label="Tampilan karyawan"><button type="button" data-employee-view="kartu" aria-pressed="true">Kartu</button><button type="button" data-employee-view="daftar" aria-pressed="false">Daftar</button></div><span id="employee-result-count" role="status" aria-live="polite">0 karyawan</span></div>
         <div id="employee-results"><div class="empty-state"><span class="empty-symbol" data-icon="users"></span><h2>Belum ada karyawan</h2><p>Daftarkan karyawan sekali, lalu pilih namanya saat serah terima perangkat.</p><button class="button button-secondary" type="button" data-employee-action="new"><span data-icon="plus"></span>Tambah Karyawan</button></div></div>
       </section>
       <section class="tracking-page devices-page" id="devices-page" aria-labelledby="devices-title" hidden>
@@ -132,7 +138,7 @@
       <section class="tracking-page" id="agenda-page" hidden></section>
       <section class="tracking-page cuti-page" id="cuti-page" hidden></section>
       <section class="tracking-page" id="profile-page" aria-label="Profil dan Pengaturan" hidden></section>
-      <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services — halaman asli" src="link-kerja.html" loading="lazy"></iframe></section>
+      <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services" src="link-kerja.html?v=15" loading="lazy"></iframe></section>
     </main>
   </div>
 
@@ -168,6 +174,7 @@
         <div class="field"><label for="employee-nik">NIK <span class="required">*</span></label><input id="employee-nik" name="nik" required maxlength="40" autocomplete="off" spellcheck="false"><small>Gunakan NIK yang tercatat di perusahaan.</small></div>
         <div class="field"><label for="employee-name">Nama karyawan <span class="required">*</span></label><input id="employee-name" name="nama" required maxlength="150" autocomplete="off"></div>
         <div class="field"><label for="employee-job">Jabatan <span class="required">*</span></label><select id="employee-job" name="jabatanId" required><option value="">Pilih jabatan</option></select><button type="button" class="button button-text field-add-job" data-manage-jobs data-super-admin hidden>+ Tambah jabatan</button></div>
+        <div class="field"><label for="employee-effective">Tanggal Efektif Kerja <span class="optional">opsional</span></label><input id="employee-effective" name="tanggalEfektifKerja" type="date" min="1900-01-01" aria-describedby="employee-effective-help"><small id="employee-effective-help">Acuan periode Tahunan. Saldo awal diatur Administrator melalui Tahunan &amp; Extra.</small></div>
         <div class="field"><label for="employee-grade">Golongan <span class="optional">opsional</span></label><input id="employee-grade" name="golongan" maxlength="40" autocomplete="off"></div>
         <div class="field"><label for="employee-phone">Nomor HP <span class="optional">opsional</span></label><input id="employee-phone" name="noHp" type="tel" maxlength="40" autocomplete="off"></div>
         <div class="field"><label for="employee-room">Kamar mess <span class="optional">opsional</span></label><input id="employee-room" name="kamarMess" maxlength="100" autocomplete="off"></div>

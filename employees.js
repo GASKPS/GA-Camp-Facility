@@ -12,19 +12,24 @@
   let employees = [], photo = '', photoBlob=null, photoObjectUrl='', photoEdited=false, photoVersion = 0, editingEmployee = null, warnings=[], listRequest=0;
   let selectedEmployeeId = null, detailRequest = 0;
   function render() {
+    const view=window.PreferensiPortal.value;
+    document.querySelectorAll('[data-employee-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.employeeView===view)));
     const q = lower($('employee-search').value.trim());
     const results = employees.filter(person => (person.aktif===($('employee-active-filter').value!=='nonaktif'))&&(!q || lower([person.nama, person.nik, person.jabatan].join(' ')).includes(q)));
-    $('employee-result-count').textContent = q ? `${results.length} dari ${employees.length} karyawan` : `${employees.length} karyawan`;
+    $('employee-result-count').textContent = `${results.length} karyawan`;
     if (!results.length) {
       $('employee-results').innerHTML = `<div class="empty-state"><span class="empty-symbol">${icon('users')}</span><h2>${q ? 'Karyawan tidak ditemukan' : 'Belum ada karyawan'}</h2><p>${q ? 'Coba cari dengan nama, NIK, atau jabatan lainnya.' : 'Daftarkan karyawan sekali, lalu pilih namanya saat serah terima perangkat.'}</p><button class="button button-secondary" type="button" data-employee-action="${q ? 'reset' : 'new'}">${q ? 'Reset pencarian' : icon('plus') + 'Tambah Karyawan'}</button></div>`;
       return;
+    }
+    if(view==='daftar'){
+      $('employee-results').innerHTML=`<div class="employee-list"><div class="employee-list-head" aria-hidden="true"><span>Nama karyawan</span><span>NIK</span><span>Jabatan</span><span>Status</span></div><ul aria-label="Daftar karyawan">${results.map(person=>`<li class="employee-list-row"><div class="employee-list-person">${avatar(person,true)}<div><button class="employee-name-button" type="button" data-employee-action="detail" data-employee-id="${e(person.id)}" aria-haspopup="dialog" aria-label="Detail ${e(person.nama)} NIK ${e(person.nik)}">${e(person.nama)}</button>${employeeWarning(person.id)}</div></div><span class="employee-list-nik">${e(person.nik)}</span><span class="employee-list-job">${e(person.jabatan)}</span><span class="employee-list-status">${person.aktif?'Aktif':'Nonaktif'}</span></li>`).join('')}</ul></div>`;return;
     }
     $('employee-results').innerHTML = `<ul class="employee-grid" aria-label="Daftar karyawan">${results.map(person => `<li class="employee-card"><div class="employee-card-head">${avatar(person, true)}<div><h2><button class="employee-name-button" type="button" data-employee-action="detail" data-employee-id="${e(person.id)}" aria-haspopup="dialog" aria-controls="employee-detail-dialog" aria-label="Detail ${e(person.nama)} NIK ${e(person.nik)}">${e(person.nama)}</button></h2><span class="employee-nik">NIK ${e(person.nik)}</span>${employeeWarning(person.id)}</div></div><dl><dt>Jabatan</dt><dd>${e(person.jabatan)}</dd><dt>Golongan</dt><dd>${e(person.golongan || '—')}</dd><dt>No. HP</dt><dd>${e(person.noHp || '—')}</dd><dt>Kamar mess</dt><dd>${e(person.kamarMess || '—')}</dd></dl></li>`).join('')}</ul>`;
   }
   function employeeWarning(id){const w=warnings.find(v=>v.karyawan_id===id);if(!w)return '';const days=window.TrackingDomain.dayNumber(w.tanggal_hangus)-window.TrackingDomain.dayNumber(window.TrackingDomain.today());return `<span class="employee-balance-warning ${days<=7?'urgent':''}">${e(w.jenis)}: ${days===0?'hangus setelah hari ini':days+' hari lagi'}</span>`;}
   async function refresh() {
     if(location.hash!=='#karyawan')return;const seq=++listRequest;await window.Akses.ready;
-    const [people,alerts]=await Promise.all([repo.list({photos:true}),window.Akses.canWrite()?window.Akses.rpc('peringatan_saldo_karyawan'):Promise.resolve([])]);
+    const [people,alerts]=await Promise.all([repo.list({photos:true}),window.Akses.canWrite()?window.Akses.rpc('peringatan_saldo_karyawan'):Promise.resolve([]),window.PreferensiPortal.load()]);
     if(seq!==listRequest||!window.Akses.profile)return;employees=people;warnings=window.Akses.canWrite()?alerts:[];render();
   }
   async function showEmployee(id) {
@@ -40,6 +45,7 @@
       if (request !== detailRequest || !$('employee-detail-dialog').open) return;
       $('employee-detail-title').textContent = person.nama;
       $('employee-detail-content').innerHTML = `<div class="employee-profile-head">${avatar(person, true)}<div><strong>NIK ${e(person.nik)}</strong><span>${e(person.jabatan)}</span></div></div><dl class="employee-profile-fields"><dt>Golongan</dt><dd>${e(person.golongan || '—')}</dd><dt>Nomor HP</dt><dd>${e(person.noHp || '—')}</dd><dt>Kamar mess</dt><dd>${e(person.kamarMess || '—')}</dd></dl><section class="employee-assets" aria-labelledby="employee-assets-title"><h3 id="employee-assets-title">Aset yang dipegang</h3>${assets.length ? `<div class="employee-asset-head" aria-hidden="true"><span>Jenis perangkat</span><span>Nomor seri</span></div><ul class="employee-asset-list" aria-label="Jenis perangkat dan nomor seri">${assets.map(asset => `<li><span>${e(asset.jenis)}</span><strong>${e(asset.nomor)}</strong></li>`).join('')}</ul>` : '<p class="employee-detail-message">Belum ada aset yang dipegang.</p>'}</section>`;
+      const fields=$('employee-detail-content').querySelector('.employee-profile-fields');fields.insertAdjacentHTML('beforeend',`<dt>Tanggal Efektif Kerja</dt><dd>${person.tanggalEfektifKerja?e(window.PortalUI.dateText(person.tanggalEfektifKerja)):'Belum diisi'}</dd>`);
       const content=$('employee-detail-content'), profile=content.innerHTML;
       content.innerHTML=`<div class="employee-detail-tabs" role="tablist" aria-label="Detail karyawan"><button type="button" role="tab" id="employee-tab-profile" aria-selected="true" aria-controls="employee-panel-profile" data-employee-tab="profile">Profil &amp; Aset</button>${window.Akses.canWrite()?'<button type="button" role="tab" id="employee-tab-balance" tabindex="-1" aria-selected="false" aria-controls="employee-panel-balance" data-employee-tab="balance">Tahunan &amp; Extra</button>':''}</div><div id="employee-panel-profile" role="tabpanel" aria-labelledby="employee-tab-profile">${profile}</div><div id="employee-panel-balance" role="tabpanel" aria-labelledby="employee-tab-balance" hidden></div>`;
       $('employee-detail-edit').hidden = !window.Akses.superAdmin() || !person.aktif;
@@ -91,6 +97,7 @@
     if (!window.Akses.superAdmin()) return;
     editingEmployee = null;
     $('employee-form').reset(); clearPhoto(); formError('employee-form-error', '');
+    $('employee-effective').readOnly=false;$('employee-effective').max=window.TrackingDomain.today();$('employee-effective-help').textContent='Acuan periode Tahunan. Saldo awal diatur Administrator melalui Tahunan & Extra.';
     await fillJobs('');
     $('employee-form-kicker').textContent = 'KARYAWAN BARU'; $('employee-form-title').textContent = 'Tambah karyawan'; $('employee-save').textContent = 'Simpan Karyawan';
     openDialog('employee-dialog'); $('employee-nik').focus();
@@ -101,7 +108,8 @@
     $('employee-form').reset(); clearPhoto(); formError('employee-form-error', '');
     editingEmployee = { id, revision: employee.revision, oldPhotoPath:employee.fotoPath };photoEdited=false;
     await fillJobs(employee.jabatanId);
-    ['nik','nama','golongan','noHp','kamarMess'].forEach(field => { $('employee-form').elements.namedItem(field).value = employee[field] || ''; });
+    ['nik','nama','golongan','noHp','kamarMess','tanggalEfektifKerja'].forEach(field => { $('employee-form').elements.namedItem(field).value = employee[field] || ''; });
+    $('employee-effective').readOnly=employee.tanggalEfektifTerkunci;$('employee-effective').max=window.TrackingDomain.today();$('employee-effective-help').textContent=employee.tanggalEfektifTerkunci?'Tanggal ini sudah menjadi acuan periode Tahunan yang tercatat.':'Acuan periode Tahunan. Saldo awal diatur Administrator melalui Tahunan & Extra.';
     photo = employee.foto || ''; renderPhoto();
     $('employee-form-kicker').textContent = 'DATA KARYAWAN'; $('employee-form-title').textContent = 'Edit karyawan'; $('employee-save').textContent = 'Simpan Perubahan';
     openDialog('employee-dialog'); $('employee-name').focus();
@@ -116,6 +124,7 @@
     if (event.target.closest('[data-open-employees]')) document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   });
   $('employee-search').addEventListener('input', render);
+  document.querySelectorAll('[data-employee-view]').forEach(button=>button.addEventListener('click',async()=>{const buttons=[...document.querySelectorAll('[data-employee-view]')];if(button.disabled||button.dataset.employeeView===window.PreferensiPortal.value)return;buttons.forEach(b=>b.disabled=true);try{await window.PreferensiPortal.save(button.dataset.employeeView);render();}catch(error){showToast('Pilihan tampilan belum tersimpan. '+error.message);}finally{buttons.forEach(b=>b.disabled=false);}}));
   $('employee-active-filter').addEventListener('change',render);
   $('employee-name').addEventListener('input', renderPhoto);
   $('employee-photo-remove').addEventListener('click', clearPhoto);

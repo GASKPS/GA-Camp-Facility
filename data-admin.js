@@ -21,7 +21,7 @@ document.addEventListener('click',event=>{const b=event.target.closest('[data-de
 });
 $('delete-confirm').onclick=async()=>{if(busy||!selected)return;busy=true;$('delete-confirm').disabled=$('delete-cancel').disabled=true;
  try{const result=await A.rpc('kelola_penghapusan',selected,true);modal.close();
-  for(const id of ['detail-dialog','employee-detail-dialog','device-history-dialog']){const d=$(id);if(d?.open)d.close();}
+  for(const id of ['detail-dialog','employee-detail-dialog','device-history-dialog','agenda-detail']){const d=$(id);if(d?.open)d.close();}
   document.dispatchEvent(new CustomEvent('data:muat-ulang'));document.dispatchEvent(new CustomEvent('employees:changed'));document.dispatchEvent(new CustomEvent('devices:changed'));U.showToast('Data berhasil '+result.hasil+'.');
  }catch(err){$('delete-error').textContent=err.message;$('delete-error').hidden=false;}
  finally{busy=false;$('delete-confirm').disabled=$('delete-cancel').disabled=false;}

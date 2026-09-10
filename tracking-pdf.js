@@ -45,9 +45,9 @@
     if (allFilterLines.length > 3) filterLines[2] = filterLines[2].slice(0, -2) + '…';
     const top = 36 + filterLines.length * 4;
     function header() {
-      doc.setFont('GA', 'bold').setFontSize(15).setTextColor(32, 52, 75);
+      doc.setFont('GA', 'bold').setFontSize(15).setTextColor(0, 0, 0);
       doc.text('Tracking Dokumen Aktif', margin, 16);
-      doc.setFont('GA', 'normal').setFontSize(8.5).setTextColor(91, 108, 127);
+      doc.setFont('GA', 'normal').setFontSize(8.5).setTextColor(0, 0, 0);
       doc.text('GA Services', margin, 23);
       doc.text(printed, width - margin, 16, { align: 'right' });
       doc.text(rows.length.toLocaleString('id-ID') + ' dokumen', width - margin, 23, { align: 'right' });
@@ -56,9 +56,9 @@
     doc.autoTable({
       startY: top, margin: { top, bottom: 17, left: margin, right: margin },
       showHead: 'everyPage', rowPageBreak: 'avoid', theme: 'grid',
-      styles: { font: 'GA', fontSize: 8.2, cellPadding: 2.1, overflow: 'linebreak', valign: 'top', textColor: [43, 58, 76], lineColor: [218, 226, 234], lineWidth: 0.15 },
-      headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [37, 63, 89], textColor: 255, fontSize: 8 },
-      alternateRowStyles: { fillColor: [246, 248, 251] },
+      styles: { font: 'GA', fontSize: 8.2, cellPadding: 2.1, overflow: 'linebreak', valign: 'top', textColor: [0, 0, 0], lineColor: [218, 226, 234], lineWidth: 0.15 },
+      headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [224, 234, 245], textColor: [0, 0, 0], fontSize: 8 },
+      alternateRowStyles: { fillColor: [255, 255, 255] },
       head: [['No', 'Tanggal masuk', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'Asal dokumen', 'BU', 'Status', 'Posisi sekarang', 'Note Perpindahan']],
       body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.asalDokumen||'Belum ditentukan'), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), text(d.notePerpindahanTerakhir)]),
       columnStyles: Object.fromEntries([10, 22, 38, 24, 16, 27, 11, 27, 32, 66].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 ? { halign: 'center' } : {}) }])),
@@ -66,8 +66,8 @@
     });
     const total = doc.getNumberOfPages();
     for (let page = 1; page <= total; page++) {
-      doc.setPage(page).setFont('GA', 'normal').setFontSize(8).setTextColor(105, 119, 136);
-      doc.setDrawColor(219, 226, 234).setLineWidth(0.2).line(margin, height - 13, width - margin, height - 13);
+      doc.setPage(page).setFont('GA', 'normal').setFontSize(8).setTextColor(0, 0, 0);
+
       doc.text('Posisi terakhir pada saat laporan dibuat', margin, height - 8);
       doc.text('Halaman ' + page + ' dari ' + total, width - margin, height - 8, { align: 'right' });
     }

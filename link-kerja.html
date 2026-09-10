@@ -6,6 +6,7 @@
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="#f3f5f7" name="theme-color"/>
 <title>GA Services Portal</title>
+<script src="tema.js?v=15"></script>
 <style>
     :root {
       --bg: #f3f5f7;
@@ -647,13 +648,13 @@
         animation: none !important;
       }
     }
-  
+
     .disabled-link{
       cursor:not-allowed;
       opacity:.64;
       background:#f7f8fa;
     }
-    
+
     .company-label{
       display:flex;
       flex-direction:column;
@@ -679,7 +680,7 @@
       line-height:1.2;
       white-space:normal;
     }
-    
+
     /* Visual refinement v14 */
     .priority-card,
     .external-card,
@@ -1290,6 +1291,11 @@
     }
 
 </style>
+
+<link rel="stylesheet" href="link-kerja.css?v=15">
+<script defer src="form-guard.js?v=15"></script>
+<script defer src="link-ikon.js?v=15"></script>
+<script defer src="link-kerja.js?v=15"></script>
 </head>
 <body>
 <main class="shell">
@@ -1305,308 +1311,30 @@
 </div>
 </div>
 <div class="header-actions"><div aria-label="Kategori link" class="tabs" role="tablist">
-<button aria-selected="true" class="tab active" data-view="internal" role="tab">Internal</button>
-<button aria-selected="false" class="tab" data-view="external" role="tab">External</button>
-</div><button aria-label="Ganti mode terang atau gelap" class="theme-toggle" id="themeToggle" title="Ganti tema" type="button"><svg aria-hidden="true" class="theme-icon theme-icon-moon" fill="none" stroke-width="1.8" viewbox="0 0 24 24">
+<button aria-selected="true" class="tab active" id="tab-camp" aria-controls="link-current link-manager" data-view="Camp &amp; Facility" role="tab">Camp &amp; Facility</button>
+<button aria-selected="false" class="tab" id="tab-canteen" aria-controls="link-current link-manager" data-view="Canteen" role="tab">Canteen</button>
+<button aria-selected="false" class="tab" id="tab-external" aria-controls="link-current link-manager" data-view="External" role="tab">External</button>
+</div><button type="button" id="link-manage-toggle" class="link-button" hidden>Kelola Link</button><button aria-label="Ganti mode terang atau gelap" class="theme-toggle" id="themeToggle" title="Ganti tema" type="button"><svg aria-hidden="true" class="theme-icon theme-icon-moon" fill="none" stroke-width="1.8" viewbox="0 0 24 24">
 <path d="M20 15.5A8 8 0 0 1 8.5 4 8.2 8.2 0 1 0 20 15.5z"></path>
 </svg><svg aria-hidden="true" class="theme-icon theme-icon-sun" fill="none" stroke-width="1.8" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="3.5"></circle>
 <path d="M12 2.5v2M12 19.5v2M4.5 12h-2M21.5 12h-2M5.3 5.3 3.9 3.9M20.1 20.1l-1.4-1.4M18.7 5.3l1.4-1.4M3.9 20.1l1.4-1.4"></path>
 </svg></button></div></header>
-<section class="view active" id="internalView">
-<section class="section">
-<div class="section-head">
-<div class="section-title">
-<h2>Prioritas</h2>
-<p>Link yang paling sering digunakan.</p>
-</div>
-<span class="section-meta">3 link utama</span>
-</div>
-<div class="priority-grid">
-<a class="priority-card tone-blue" href="https://gaskps.github.io/Mess-Karyawan/" rel="noopener" target="_blank">
-<div class="card-top">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M4 20V8l8-4 8 4v12"></path>
-<path d="M9 20v-6h6v6"></path>
-<path d="M8 10h.01M12 10h.01M16 10h.01"></path>
-</svg></div>
-<span class="external-arrow">↗</span>
-</div>
-<div class="card-copy">
-<strong>Data Mess Karyawan</strong>
-<span>Cari data karyawan, blok, kamar, dan lokasi hunian</span>
-</div>
-</a>
-<a class="priority-card tone-violet" href="https://script.google.com/macros/s/AKfycbwF-vlBcHZsJdaWDfn_cG8Nla0OAU6AO2WmSQUZsy4fljWa8UhDq_jBdi55N-kc59BY/exec" rel="noopener" target="_blank">
-<div class="card-top">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M7 3h7l4 4v14H7z"></path>
-<path d="M14 3v5h5"></path>
-<path d="M10 13h4"></path>
-<path d="M10 17h5"></path>
-<path d="M5 13l-2 2 2 2"></path>
-</svg></div>
-<span class="external-arrow">↗</span>
-</div>
-<div class="card-copy">
-<strong>Tracking Dokumen</strong>
-<span>Pantau proses dan status dokumen</span>
-</div>
-</a>
-<a class="priority-card tone-amber" href="https://docs.google.com/spreadsheets/d/1buhruGKAZbiDmlLzqY8ztTTBFx0V9pWyLjy3NQMZii8/edit?resourcekey=&amp;gid=1607629557#gid=1607629557" rel="noopener" target="_blank">
-<div class="card-top">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M4 9h16v9H4z"></path>
-<path d="M7 9V6h10v3"></path>
-<path d="M8 13h8"></path>
-<path d="M9 18v2M15 18v2"></path>
-</svg></div>
-<span class="external-arrow">↗</span>
-</div>
-<div class="card-copy">
-<strong>Pengembalian Bedding / Perlengkapan Kamar</strong>
-<span>Form pengembalian bedding atau perlengkapan kamar</span>
-</div>
-</a>
-</div>
-</section>
-<section class="section">
-<div class="section-head">
-<div class="section-title">
-<h2>Internal lainnya</h2>
-<p>Dokumen dan form operasional.</p>
-</div>
-</div>
-<div class="list-panel">
-<a class="row tone-slate" href="#" rel="noopener" target="_blank">
-<div class="row-left">
-<div class="row-icon">
-<svg fill="none" stroke-width="1.7" viewbox="0 0 24 24">
-<path d="M5 4h14v16H5z"></path>
-<path d="M8 8h8M8 12h8M8 16h5"></path>
-</svg>
-</div>
-<div class="row-text">
-<strong>Spreadsheet Internal</strong>
-<span>Data kerja internal</span>
-</div>
-</div>
-<span class="external-arrow">↗</span>
-</a>
-<a class="row tone-teal" href="https://docs.google.com/spreadsheets/d/1atKGjEmiiZagJrmUji_2VHkXFqTa0em2PYLSxvZKif0/edit?pli=1&amp;gid=944968946#gid=944968946" rel="noopener" target="_blank">
-<div class="row-left">
-<div class="row-icon">
-<svg fill="none" stroke-width="1.7" viewbox="0 0 24 24">
-<path d="M4 8h16v10H4z"></path>
-<path d="M8 13h8M12 5v3"></path>
-</svg>
-</div>
-<div class="row-text">
-<strong>Pengambilan Bedding</strong>
-<span>Form pengambilan bedding</span>
-</div>
-</div>
-<span class="external-arrow">↗</span>
-</a>
-<a class="row tone-rose" href="https://docs.google.com/spreadsheets/d/1qvsejxkpdGOqh7TBnpBNBO0Sk-kj1mY1UrVxoPtAlh4/edit?gid=1334089976#gid=1334089976" rel="noopener" target="_blank">
-<div class="row-left">
-<div class="row-icon">
-<svg fill="none" stroke-width="1.7" viewbox="0 0 24 24">
-<path d="M5 5h14v11H9l-4 4z"></path>
-<path d="M9 9h6M9 12h4"></path>
-</svg>
-</div>
-<div class="row-text">
-<strong>Pengaduan</strong>
-<span>Form dan data pengaduan</span>
-</div>
-</div>
-<span class="external-arrow">↗</span>
-</a>
-<details class="row row-group tone-indigo">
-<summary class="row-summary">
-<div class="row-left">
-<div class="row-icon">
-<svg fill="none" stroke-width="1.7" viewbox="0 0 24 24">
-<path d="M7 4h10v16H7z"></path>
-<path d="M10 8h4M10 12h4M10 16h3"></path>
-</svg>
-</div>
-<div class="row-text">
-<strong>Serah Terima HT dan HP</strong>
-<span>Pencatatan dan rekap serah terima perangkat perusahaan</span>
-</div>
-</div>
-<span aria-hidden="true" class="row-chevron"><svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24"><path d="m7 9 5 5 5-5"></path></svg></span>
-</summary>
-<div aria-label="Pilihan serah terima HT dan HP" class="row-actions" role="group">
-<a class="row-action" href="https://docs.google.com/forms/d/e/1FAIpQLScYHx8hBaEEZ4fhhUmnMtLyWEa6u0nDMGmtmY5YedIvtG0L8w/viewform?usp=header" rel="noopener" target="_blank">
-<span class="row-action-copy"><strong>Isi Google Form</strong><span>Catat penyerahan atau penerimaan HT dan HP</span></span>
-<span class="external-arrow">↗</span>
-</a>
-<a class="row-action" href="https://docs.google.com/spreadsheets/d/1rMtKL27MJ_UP5N3tdgJqOaSMMMbd5JERy0UTrvENBGM/edit?resourcekey=&amp;gid=1928238653#gid=1928238653" rel="noopener" target="_blank">
-<span class="row-action-copy"><strong>Lihat Spreadsheet</strong><span>Buka rekap dan riwayat serah terima</span></span>
-<span class="external-arrow">↗</span>
-</a>
-</div>
-</details>
-</div>
-</section>
-</section>
-<section class="view" id="externalView">
-<section class="section">
-<div class="section-head">
-<div class="section-title">
-<h2>Absensi &amp; Perizinan</h2>
-<p>Akses external berdasarkan unit.</p>
-</div>
-</div>
-<div class="external-grid">
-<article class="external-card tone-blue">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<circle cx="12" cy="12" r="8"></circle>
-<path d="M12 7v5l3 2"></path>
-<path d="M8 4.5 6.5 3M16 4.5 17.5 3"></path>
-</svg></div>
-<div>
-<strong>Input Absensi</strong>
-<span>Input dan kelola absensi karyawan</span>
-</div>
-</div>
-<a class="mini-link" href="https://docs.google.com/spreadsheets/d/1HrVY-KR3S9A1G4zyCACrNTi3CpVwv8lPA9aZRZpL44E/edit?pli=1&amp;gid=1823741062#gid=1823741062" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-hjf">HJF</strong><small>PT Halmahera Jaya Feronikel</small></span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/1hL4rqXfFQxqFT_lzia5JpREYb215LrwUWp6COXNwJsY/edit?gid=591963174#gid=591963174" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-kps">KPS</strong><small>PT Karunia Permai Sentosa</small></span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/12jVB0EPW8ODIsLhLWCQOW6ojQIEK3gyz3tAGl1zzAkU/edit?gid=1489172358#gid=1489172358" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-ost">OST</strong><small>PT Obi Sinar Timur</small></span><span class="external-arrow">↗</span></a></article>
-<article class="external-card tone-green">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M9 3h6v4h4v6h-4v4H9v-4H5V7h4z"></path>
-<path d="M12 7v10M7 12h10"></path>
-</svg></div>
-<div>
-<strong>SKD Klinik</strong>
-<span>Surat keterangan dokter</span>
-</div>
-</div>
-<a class="mini-link" href="http://10.30.37.228:8501/" rel="noopener" target="_blank"><span>SKD Klinik</span><span class="external-arrow">↗</span></a><a class="mini-link" href="http://192.168.130.46/" rel="noopener" target="_blank"><span>Verifikasi SKD</span><span class="external-arrow">↗</span></a></article>
-<article class="external-card tone-amber">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M7 3h7l4 4v14H7z"></path>
-<path d="M14 3v5h5"></path>
-<path d="M9 12h6M9 16h4"></path>
-<circle cx="17.5" cy="16.5" r="2.5"></circle>
-</svg></div>
-<div>
-<strong>Pengurusan Berkas 312</strong>
-<span>Agung Aribowo</span>
-</div>
-</div>
-<a class="mini-link" href="https://forms.gle/tvKG6TmUNAmMyr6j6" rel="noopener" target="_blank"><span>Register</span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/1wv5Yfak-Ku7CLrwtTLYEOr1Lp-KtiMNLjFVL4GZsKCE/edit?gid=802609979#gid=802609979" rel="noopener" target="_blank"><span>Tracking Dokumen</span><span class="external-arrow">↗</span></a></article>
-<article class="external-card tone-indigo it-helpdesk-card">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M5 7h14v9H9l-4 4z"></path>
-<path d="M9 11h6"></path>
-<path d="M12 8.5v5"></path>
-</svg></div>
-<div>
-<strong>IT Help Desk</strong>
-<span>Bantuan IT dan reset akses</span>
-</div>
-</div>
-<a class="mini-link" href="http://helpdesk.obi.com/" rel="noopener" target="_blank"><span>Buat Tiket IT</span><span class="external-arrow">↗</span></a><div class="it-group"><div class="it-group-title"><span class="it-group-badge powerplus">Power Plus</span><small>Reset akses</small></div><div class="it-group-actions"><a class="mini-link" href="https://harita.powerplus10.com/Default.aspx" rel="noopener" target="_blank"><span>Reset Password</span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://drive.google.com/file/d/1swBM9GYKXY38oS1oswyxPpkPBTSuyDwg/view?usp=drive_link" rel="noopener" target="_blank"><span>Tutorial</span><span class="external-arrow">↗</span></a></div></div><div class="it-group"><div class="it-group-title"><span class="it-group-badge wifi">WiFi</span><small>Reset akses</small></div><div class="it-group-actions"><a class="mini-link" href="https://iam.lygend.com:10086/snackbar/package/portal/selfcareforgetpassword/index.html?n=3" rel="noopener" target="_blank"><span>Reset Password</span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://drive.google.com/file/d/1AkGFw2jV3pNnN0UDkd5IHbvg85amI39E/view?usp=drive_link" rel="noopener" target="_blank"><span>Tutorial</span><span class="external-arrow">↗</span></a></div></div></article>
-<article class="external-card tone-violet">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M8 4h8v4H8z"></path>
-<path d="M6 7h12v14H6z"></path>
-<path d="m9 14 2 2 4-4"></path>
-</svg></div>
-<div>
-<strong>Data Izin Tidak Finger</strong>
-<span>Data pengajuan dan approval tidak finger karyawan</span>
-</div>
-</div>
-<a class="mini-link" href="https://docs.google.com/spreadsheets/d/1NDYGCCB6EKoDyxUSZE8voHG3NA4zTJM7ciB077DP0ak/edit?gid=578650227#gid=578650227" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-hjf">HJF</strong><small>PT Halmahera Jaya Feronikel</small></span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/1TbQt_SXYLuC1GYlVYaSJSsyMKgFGXn2Dg8WLXsZJ44k/edit?gid=1811805796#gid=1811805796" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-kps">KPS</strong><small>PT Karunia Permai Sentosa</small></span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/16IgIGMxaeFNwW8ShdMoQ9wPHxN8yzQmDDqRhHLR5rYk/edit?gid=1600932865#gid=1600932865" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-ost">OST</strong><small>PT Obi Sinar Timur</small></span><span class="external-arrow">↗</span></a></article>
-<article class="external-card tone-teal">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<rect height="14" rx="2" width="16" x="4" y="5"></rect>
-<path d="M8 3v4M16 3v4M4 9h16"></path>
-<path d="M8 13h3M8 16h5"></path>
-</svg></div>
-<div>
-<strong>Data Pembayaran Cuti On Site</strong>
-<span>Data pembayaran cuti on site</span>
-</div>
-</div>
-<a class="mini-link" href="https://docs.google.com/spreadsheets/d/1Z3ZwrcVtO6r1lXjq0LJ7bfpgjDuZ31H42ZaR6pP3-KI/edit?gid=840365002#gid=840365002" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-hjf">HJF</strong><small>PT Halmahera Jaya Feronikel</small></span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/1e4D6sMx--I4Hb35WQpvIRdNlfArXRuAJRZkjEtoUdmI/edit?gid=0#gid=0" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-kps">KPS</strong><small>PT Karunia Permai Sentosa</small></span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/1IwLtRCCd71m_d1eLlpZ9SOdw-y1xylfBMzHwbz4_hJo/edit?gid=840365002#gid=840365002" rel="noopener" target="_blank"><span class="company-label"><strong class="company-code company-ost">OST</strong><small>PT Obi Sinar Timur</small></span><span class="external-arrow">↗</span></a></article>
-<article class="external-card tone-amber">
-<div class="external-head">
-<div class="icon icon-accent"><svg fill="none" stroke-width="1.8" viewbox="0 0 24 24">
-<path d="M7 3h7l4 4v14H7z"></path>
-<path d="M14 3v5h5"></path>
-<path d="M9 12h6M9 16h4"></path>
-<circle cx="17.5" cy="16.5" r="2.5"></circle>
-</svg></div>
-<div>
-<strong>Pengumpulan Dokumen 909 (Responses)</strong>
-
-</div>
-</div>
-<a class="mini-link" href="https://docs.google.com/forms/d/e/1FAIpQLSfJ2N98_A0iHkSQHDW1pHPIKuchIiIbaqEnKxfuluK1d7GSjQ/viewform" rel="noopener" target="_blank"><span>Registrasi</span><span class="external-arrow">↗</span></a><a class="mini-link" href="https://docs.google.com/spreadsheets/d/15pMywouPdH3Nwrjk9yxYztYTNoMaJEHeCrE3Yz_pyoo/edit?gid=427779133#gid=427779133" rel="noopener" target="_blank"><span>Tracking Dokumen</span><span class="external-arrow">↗</span></a></article>
-</div>
-</section>
-</section>
-<div class="footnote">General Affair Services Portal</div>
-</main>
-<script>
-    const tabs = [...document.querySelectorAll('.tab')];
-    const views = {
-      internal: document.getElementById('internalView'),
-      external: document.getElementById('externalView')
-    };
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const selected = tab.dataset.view;
-
-        tabs.forEach(item => {
-          const active = item.dataset.view === selected;
-          item.classList.toggle('active', active);
-          item.setAttribute('aria-selected', String(active));
-        });
-
-        Object.entries(views).forEach(([key, view]) => {
-          view.classList.toggle('active', key === selected);
-        });
-      });
-    });
-  
-
-    const themeToggle = document.getElementById('themeToggle');
-
-    function applyTheme(theme){
-      const isDark = theme === 'dark';
-      document.body.classList.toggle('dark', isDark);
-      if (themeToggle) {
-        themeToggle.setAttribute('aria-pressed', String(isDark));
-        themeToggle.title = isDark ? 'Gunakan mode terang' : 'Gunakan mode gelap';
-      }
-      document.querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', isDark ? '#161a20' : '#f3f5f7');
-    }
-
-    const savedTheme = localStorage.getItem('ga-portal-theme');
-    const initialTheme = savedTheme ||
-      (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-
-    applyTheme(initialTheme);
-
-    themeToggle?.addEventListener('click', () => {
-      const nextTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
-      localStorage.setItem('ga-portal-theme', nextTheme);
-      applyTheme(nextTheme);
-    });
-</script>
-</body>
-</html>
+<section class="view active" id="link-current" role="tabpanel" aria-labelledby="tab-camp" aria-live="polite"><p class="link-empty">Memuat Link Kerja…</p></section>
+<section id="link-manager" role="tabpanel" aria-labelledby="tab-camp" class="view active" hidden><div class="link-manage-heading"><div><h2>Kelola Link</h2><p id="link-manage-group"></p></div><div class="link-manage-actions"><button type="button" class="link-button" id="link-back">Kembali</button><button type="button" class="link-button primary" id="link-add">Tambah link</button></div></div><div id="link-manage-list"></div></section>
+<p id="link-error" class="link-error" role="alert" hidden></p><button type="button" id="link-retry" class="link-button" hidden>Muat ulang</button>
+<div class="footnote">General Affair Services Portal</div></main>
+<dialog class="link-dialog" id="link-dialog" aria-labelledby="link-form-title"><header><h2 id="link-form-title">Tambah link</h2><button type="button" class="link-button" id="link-close" aria-label="Tutup formulir">Tutup</button></header>
+<form id="link-form"><div class="link-form-body"><div class="link-fields">
+<label>Nama kartu<input name="nama" id="link-name" required maxlength="150"></label>
+<label>Kelompok<select name="kelompok" id="link-group"><option>Camp &amp; Facility</option><option>Canteen</option><option>External</option></select></label>
+<label class="wide">Keterangan singkat<input name="keterangan" maxlength="500"></label>
+<label>Urutan tampil<input name="urutan" type="number" min="1" max="9999" required></label>
+<label>Logo / ikon<select id="link-logo-mode"><option value="ikon">Ikon bawaan</option><option value="logo">Unggah logo</option></select></label>
+<label id="link-icon-field">Pilihan ikon<select name="ikon" id="link-icon"></select></label><div class="link-logo-preview" id="link-logo-preview" aria-hidden="true"></div>
+<label id="link-logo-field" class="wide" hidden>Gambar logo<input type="file" id="link-logo-file" accept="image/png,image/jpeg,image/webp"><small>PNG, JPG, atau WebP. Ukuran logo disesuaikan otomatis.</small><small id="link-logo-status" role="status"></small></label>
+<label class="link-check" id="link-primary-field"><input type="checkbox" name="utama"> Jadikan link utama (maksimal 3)</label>
+<label class="link-check"><input type="checkbox" name="aktif" checked> Aktif</label>
+</div><div class="link-buttons-heading"><h3>Tombol link</h3><button type="button" class="link-button" id="link-add-button">Tambah tombol</button></div><div id="link-buttons"></div><p class="link-error" id="link-form-error" role="alert" hidden></p></div>
+<footer><button type="button" class="link-button" id="link-cancel">Batal</button><button type="submit" class="link-button primary" id="link-save">Simpan link</button></footer></form></dialog>
+</body></html>

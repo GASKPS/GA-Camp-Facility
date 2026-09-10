@@ -1,8 +1,8 @@
 (function(g){
 'use strict';const A=g.Akses;
-const identity='id,aktif,pernah_digunakan,nik,nama,jabatan,jabatan_id,golongan,nomor_hp,kamar_mess,versi,data_jabatan:jabatan(id,nama,urutan)';
-const map=v=>({id:v.id,aktif:v.aktif!==false,pernahDigunakan:!!v.pernah_digunakan,nik:v.nik,nama:v.nama,jabatan:v.data_jabatan?.nama||v.jabatan,jabatanId:v.jabatan_id,urutan:v.data_jabatan?.urutan??null,golongan:v.golongan,noHp:v.nomor_hp,kamarMess:v.kamar_mess,foto:v.foto||'',fotoPath:v.foto_path||'',revision:v.versi});
-const fields=f=>({nik:f.nik,nama:f.nama,jabatan_id:f.jabatanId,golongan:f.golongan,nomor_hp:f.noHp,kamar_mess:f.kamarMess});
+const identity='id,aktif,pernah_digunakan,nik,nama,jabatan,jabatan_id,golongan,nomor_hp,kamar_mess,versi,data_jabatan:jabatan(id,nama,urutan),tanggal_efektif_kerja,periode_tahunan:pengaturan_tahunan(karyawan_id)';
+const map=v=>({id:v.id,aktif:v.aktif!==false,pernahDigunakan:!!v.pernah_digunakan,nik:v.nik,nama:v.nama,jabatan:v.data_jabatan?.nama||v.jabatan,jabatanId:v.jabatan_id,urutan:v.data_jabatan?.urutan??null,golongan:v.golongan,noHp:v.nomor_hp,kamarMess:v.kamar_mess,foto:v.foto||'',fotoPath:v.foto_path||'',tanggalEfektifKerja:v.tanggal_efektif_kerja||'',tanggalEfektifTerkunci:Array.isArray(v.periode_tahunan)?v.periode_tahunan.length>0:!!v.periode_tahunan,revision:v.versi});
+const fields=f=>({nik:f.nik,nama:f.nama,jabatan_id:f.jabatanId,golongan:f.golongan,nomor_hp:f.noHp,kamar_mess:f.kamarMess,tanggal_efektif_kerja:f.tanggalEfektifKerja||null});
 const compare=(a,b)=>(a.urutan??Infinity)-(b.urutan??Infinity)||a.nama.localeCompare(b.nama,'id-ID',{sensitivity:'base'})||a.id.localeCompare(b.id);
 async function save(id,f){
  if(!A.superAdmin())throw new Error('Hanya Super Admin yang boleh mengelola karyawan.');
