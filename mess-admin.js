@@ -1,10 +1,11 @@
 (function(){
   'use strict';
   const $=id=>document.getElementById(id),A=window.Akses,{escape:e,formError,showToast}=window.PortalUI;
-  const targets=[['nik','NIK'],['nama','Nama'],['departemen','Departemen'],['jabatan','Jabatan'],['lokasi_hunian','Lokasi Hunian'],['blok','Blok'],['nomor_kamar','Nomor Kamar']];
+  const targets=[['nik','NIK'],['nama','Nama'],['departemen','Departemen'],['jabatan','Jabatan'],['lokasi_hunian','Lokasi Hunian'],['blok','Blok'],['nomor_kamar','Nomor Kamar'],['tanggal_masuk_hunian','Tanggal Masuk Hunian']];
   const normal=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const aliases={nik:['nik','idkaryawan'],nama:['nama','namakaryawan'],departemen:['departemen','department','dept'],jabatan:['jabatan','position'],lokasi_hunian:['lokasihunian','lokasi','mess','hunian'],blok:['blok','block'],nomor_kamar:['nomorkamar','nokamar','kamar','room']};
+  const aliases={nik:['nik','idkaryawan'],nama:['nama','namakaryawan'],departemen:['departemen','department','dept'],jabatan:['jabatan','position'],lokasi_hunian:['lokasihunian','lokasi','mess','hunian'],blok:['blok','block'],nomor_kamar:['nomorkamar','nokamar','kamar','room'],tanggal_masuk_hunian:['tanggalmasukhunian','tglmasukhunian','tanggalmasukmess','tglmasukmess','tanggalmasuk','tglmasuk']};
   let source=[],headers=[],rows=[],settings=null,busy=false,logs=[],logPage=0,logHasMore=false,hasLoadedLogs=false;
+  let logRequest=0,logActor=null;
   function time(v){return v?new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(v))+' WIT':'Belum ada pembaruan';}
   async function metadata(){
     await A.ready;if(!A.profile)return;
@@ -77,23 +78,29 @@
     }finally{freezeUpload(false);}
   });
   function renderLogs(){
+    if(!A.administrator())return;
     const recent=logs.filter(r=>new Date(r.dicari_pada).getTime()>=Date.now()-86400000);
     $('mess-log-results').innerHTML=recent.length?'<div class="table-scroll"><table><thead><tr><th>Waktu</th><th>Pengguna</th><th>Pencarian</th><th>Hasil</th></tr></thead><tbody>'+recent.map(r=>'<tr><td>'+e(time(r.dicari_pada))+'</td><td>'+e(r.nama_pengguna)+'<small>'+e(r.email_pengguna)+'</small></td><td>'+e(r.jenis_pencarian==='nama'?r.kata_kunci:[r.lokasi_hunian,r.blok&&'Blok '+r.blok,r.nomor_kamar&&'Kamar '+r.nomor_kamar].filter(Boolean).join(' · '))+'</td><td>'+r.jumlah_hasil+'</td></tr>').join('')+'</tbody></table></div>':'<p class="mess-log-empty">Belum ada pencarian dalam 24 jam terakhir.</p>';
     $('mess-log-count').textContent=recent.length+' pencarian ditampilkan';$('mess-log-more').hidden=!logHasMore;
   }
   async function loadLogs(more=false){
-    if(!A.superAdmin())return;
-    const client=await A.requireClient(),page=more?logPage+1:0;
+    if(!A.administrator())return;
+    const sequence=++logRequest,who=A.profile?.id,client=await A.requireClient(),page=more?logPage+1:0;
     const {data,error}=await client.from('riwayat_pencarian_mess').select('*').gte('dicari_pada',new Date(Date.now()-86400000).toISOString()).order('dicari_pada',{ascending:false}).order('id',{ascending:false}).range(page*100,page*100+99);
+    if(sequence!==logRequest||A.profile?.id!==who||!A.administrator())return;
     if(error)throw new Error(A.errorText(error));
     logs=more?[...new Map([...logs,...data].map(r=>[r.id,r])).values()]:data;logPage=page;logHasMore=data.length===100;hasLoadedLogs=true;renderLogs();
   }
   $('mess-log-refresh').addEventListener('click',()=>loadLogs().catch(err=>showToast(err.message)));
   $('mess-log-more').addEventListener('click',async()=>{const b=$('mess-log-more');b.disabled=true;try{await loadLogs(true);}catch(err){showToast(err.message);}finally{b.disabled=false;}});
-  async function refresh(){await metadata();if(A.superAdmin()&&location.hash==='#mess')await loadLogs();}
-  document.addEventListener('akses:berubah',()=>refresh().catch(err=>showToast(err.message)));
+  async function refresh(){await metadata();if(A.administrator()&&location.hash==='#mess')await loadLogs();}
+  document.addEventListener('akses:berubah',()=>{
+    const who=A.profile?.id;
+    if(logActor!==who||!A.administrator()){logRequest++;logActor=who;logs=[];logPage=0;logHasMore=false;hasLoadedLogs=false;$('mess-log-results').replaceChildren();$('mess-log-count').textContent='';$('mess-log-more').hidden=true;}
+    refresh().catch(err=>showToast(err.message));
+  });
   document.addEventListener('data:muat-ulang',()=>refresh().catch(err=>showToast(err.message)));
   window.addEventListener('hashchange',()=>{if(location.hash==='#mess')refresh().catch(err=>showToast(err.message));});
-  setInterval(()=>{if(hasLoadedLogs&&A.superAdmin())renderLogs();},60000);
+  setInterval(()=>{if(hasLoadedLogs&&A.administrator())renderLogs();},60000);
   refresh().catch(err=>showToast(err.message));
 })();

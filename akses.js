@@ -23,17 +23,19 @@
     document.querySelectorAll('[data-actor-input]').forEach(el => { el.value = state.profile?.nama || ''; });
     document.querySelectorAll('[data-current-role]').forEach(el => { el.textContent = ({administrator:'Administrator',super_admin:'Super Admin',admin:'Admin',pembaca:'Hanya lihat'})[state.profile?.peran] || 'Belum terhubung'; });
     document.querySelectorAll('[data-super-admin]').forEach(el => { el.hidden = !superAdmin(); });
+    document.querySelectorAll('[data-administrator]').forEach(el => { el.hidden = !administrator(); });
     document.querySelectorAll('[data-preview-notice]').forEach(el => { el.hidden = !state.preview; });
     document.dispatchEvent(new CustomEvent('akses:berubah'));
   }
   async function hydrate(user) {
-    if (!user) { state.profile = null; $('app-shell').hidden = true; $('auth-screen').hidden = false; return; }
+    if (!user) { state.profile = null; $('app-shell').hidden = true; $('auth-screen').hidden = false; document.dispatchEvent(new CustomEvent('akses:berubah')); return; }
     const { data, error } = await state.client.from('profil_pengguna').select('*').eq('id',user.id).single();
     if (error || !data?.aktif || (!['administrator','super_admin'].includes(data.peran) && !data[area === 'mess' ? 'akses_mess' : 'akses_portal'])) {
       state.profile = null;
       document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
       $('app-shell').hidden = true; $('auth-screen').hidden = false;
       const message = error ? errorText(error) : !data.aktif ? 'Akun belum aktif. Hubungi Super Admin.' : 'Akun ini belum diberi akses ke web ini. Hubungi Super Admin.';
+      document.dispatchEvent(new CustomEvent('akses:berubah'));
       showError(message); throw new Error(message);
     }
     state.profile = data; state.preview = false; showApp();
