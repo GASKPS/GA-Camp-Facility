@@ -28,7 +28,7 @@
   document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
   const $ = id => document.getElementById(id);
   const D = window.TrackingDomain, repository = window.TrackingStore;
-  let documents = [], selectedId = null, tab = 'active', toastTimer, editingDocument = null, movementRevision = null;
+  let accessKey='', documents = [], selectedId = null, tab = 'active', toastTimer, editingDocument = null, movementRevision = null;
   let exportingPdf = false, documentPage = 1, historyPage = 1, detailDocument = null, snapshot={total:0,ringkasan:{}}, listRequest=0, filterTimer, historyRequest=0;
   const pages = window.Paginasi;
   const e = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -38,7 +38,7 @@
     return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(y, m - 1, d));
   };
   const typeText = D.typeText;
-  const filters = () => ({query: $('search').value.trim(), bu: $('filter-bu').value, status: $('filter-status').value,office:$('filter-office').value,dateFrom:$('filter-from').value,dateTo:$('filter-to').value});
+  const filters = () => ({query: $('search').value.trim(), bu: $('filter-bu').value, status: $('filter-status').value,office:window.Akses.administrator()?$('filter-office').value:(window.Akses.profile?.office_id||''),officeNama:$('filter-office').selectedOptions[0]?.textContent||'',dateFrom:$('filter-from').value,dateTo:$('filter-to').value});
   const statusClass = value => ({'Menunggu Approval':'approval','Sedang Diproses':'process','Perlu Revisi':'revision','Siap Diambil':'ready','Sudah Diambil':'done','Selesai':'done','Dibatalkan':'cancel'}[value] || '');
   const status = value => `<span class="status-badge status-${statusClass(value)}">${e(value)}</span>`;
   function showToast(message) {
@@ -154,7 +154,7 @@
     }
     $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">Asal dokumen</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.map(doc => {
       const held = D.holdDays(doc);
-      return `<tr><td data-label="Dokumen"><button class="document-name" type="button" data-document="${e(doc.id)}">${e(doc.namaDokumen)}</button><span class="document-meta">${e(typeText(doc))}${doc.nomorDokumen ? ' · ' + e(doc.nomorDokumen) : ''}</span><span class="document-meta">${e(doc.kode)}</span></td><td data-label="Tanggal masuk" class="date-cell">${e(dateText(doc.tanggalMasuk))}</td><td data-label="Asal dokumen">${e(doc.asalDokumen||'Belum ditentukan')}</td><td data-label="BU"><span class="bu-badge">${e(doc.bu)}</span></td><td data-label="Status">${status(doc.statusTerakhir)}</td><td data-label="Posisi sekarang">${e(doc.posisiSekarang)}<span class="secondary-value">${e(doc.tahapanSekarang)}</span></td><td data-label="Lama tertahan"><span class="hold-value ${held > 3 ? 'overdue' : ''}">${held == null ? '—' : held + ' hari'}</span></td><td><button class="detail-row-button" type="button" data-document="${e(doc.id)}" aria-label="Lihat detail ${e(doc.namaDokumen)}">${icon('chevron')}</button></td></tr>`;
+      return `<tr><td data-label="Dokumen"><button class="document-name" type="button" data-document="${e(doc.id)}">${e(doc.namaDokumen)}</button><span class="document-meta">${e(typeText(doc))}${doc.nomorDokumen ? ' · ' + e(doc.nomorDokumen) : ''}</span><span class="document-meta">${e(doc.kode)}</span></td><td data-label="Tanggal masuk" class="date-cell">${e(dateText(doc.tanggalMasuk))}</td><td data-label="Asal dokumen">${e(doc.asalDokumen||'Belum ditentukan')}</td><td data-label="BU"><span class="bu-badge">${e(doc.bu)}</span></td><td data-label="Status">${status(doc.statusTerakhir)}</td><td data-label="Posisi sekarang">${e(doc.posisiSekarang)}</td><td data-label="Lama tertahan"><span class="hold-value ${held > 3 ? 'overdue' : ''}">${held == null ? '—' : held + ' hari'}</span></td><td><button class="detail-row-button" type="button" data-document="${e(doc.id)}" aria-label="Lihat detail ${e(doc.namaDokumen)}">${icon('chevron')}</button></td></tr>`;
     }).join('')}</tbody></table></div>`;
   }
   async function refresh() {
@@ -178,18 +178,21 @@
     finally { exportingPdf = false; label.textContent = 'Unduh PDF'; report.hidden = tab !== 'active'; render(); }
   });
   ['search','filter-bu','filter-status','filter-office','filter-from','filter-to'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', () => { listRequest++;documentPage=1;clearTimeout(filterTimer);filterTimer=setTimeout(()=>refresh().catch(error=>showToast(error.message)),id==='search'?300:0); }));
-  function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; $('filter-office').value=''; $('filter-from').value=''; $('filter-to').value=''; refresh().catch(error=>showToast(error.message)); }
-  function newDocument() {
+  function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; $('filter-office').value=window.Akses.administrator()?'':(window.Akses.profile?.office_id||''); $('filter-from').value=''; $('filter-to').value=''; refresh().catch(error=>showToast(error.message)); }
+  async function newDocument() {
     if(!Akses.canWrite()) return showToast('Masuk dengan akun admin untuk menambah dokumen.');
     editingDocument = null;
     $('document-form').reset(); $('doc-date').value = D.today(); $('doc-date').max = '';
     $('document-form-kicker').textContent = 'DOKUMEN BARU'; $('document-dialog-title').textContent = 'Tambah dokumen'; $('document-save').textContent = 'Simpan Dokumen';
+    await window.OfficeUI.documentOffice();
+    if(!Akses.administrator()&&!Akses.profile?.office_id)return showToast('Office akun belum ditetapkan. Hubungi Administrator.');
     updateOtherType(); formError('document-error', ''); openDialog('document-dialog'); $('doc-name').focus();
   }
   async function editDocument() {
     const doc = await repository.get(selectedId), form = $('document-form'); form.reset();
     editingDocument = { id: doc.id, revision: doc.revision };
-    ['namaDokumen','tanggalMasuk','jenisDokumen','nomorDokumen','bu','asalDokumen','keperluan','noteDokumen'].forEach(field => { form.elements.namedItem(field).value = doc[field] || ''; });
+    ['namaDokumen','tanggalMasuk','jenisDokumen','nomorDokumen','bu','noteDokumen'].forEach(field => { form.elements.namedItem(field).value = doc[field] || ''; });
+    await window.OfficeUI.documentOffice(doc.officeId);
     updateOtherType(); $('doc-other-type').value = doc.jenisDokumenLainnya || ''; $('doc-date').max = doc.tanggalPerpindahanPertama || '';
     $('document-form-kicker').textContent = doc.kode; $('document-dialog-title').textContent = 'Edit dokumen'; $('document-save').textContent = 'Simpan Perubahan';
     formError('document-error', ''); openDialog('document-dialog'); $('doc-name').focus();
@@ -202,7 +205,7 @@
   $('doc-type').addEventListener('change', updateOtherType);
   document.addEventListener('click', event => {
     const action = event.target.closest('[data-action]');
-    if (action?.dataset.action === 'new-document') newDocument();
+    if (action?.dataset.action === 'new-document') newDocument().catch(error=>showToast(error.message));
     if (action?.dataset.action === 'reset-filters') resetFilters();
     const doc = event.target.closest('[data-document]');
     if (doc) showDetail(doc.dataset.document).catch(error => showToast(error.message));
@@ -227,8 +230,8 @@
     $('detail-id').textContent = doc.kode; $('detail-title').textContent = doc.namaDokumen;
     $('detail-status').innerHTML = status(doc.statusTerakhir);
     const held = D.holdDays(doc); $('detail-held').textContent = held == null ? '' : `${held} hari di posisi terakhir`;
-    $('detail-position').textContent = doc.posisiSekarang; $('detail-stage').textContent = doc.tahapanSekarang;
-    const fields = [['Tanggal masuk', dateText(doc.tanggalMasuk)], ['BU', doc.bu], ['Jenis dokumen', typeText(doc)], ['Nomor dokumen', doc.nomorDokumen || 'Tidak ada nomor'], ['Asal dokumen', doc.asalDokumen||'Belum ditentukan (data lama)'], ['Keperluan', doc.keperluan], ['Dibuat oleh', doc.namaPembuat]];
+    $('detail-position').textContent = doc.posisiSekarang;
+    const fields = [['Tanggal masuk', dateText(doc.tanggalMasuk)], ['BU', doc.bu], ['Jenis dokumen', typeText(doc)], ['Nomor dokumen', doc.nomorDokumen || 'Tidak ada nomor'], ['Asal dokumen', doc.asalDokumen||'Belum ditentukan (data lama)'], ['Dibuat oleh', doc.namaPembuat]];
     $('detail-fields').innerHTML = fields.map(([name, value]) => `<dl class="detail-field"><dt>${e(name)}</dt><dd>${e(value)}</dd></dl>`).join('');
     $('detail-note').textContent = doc.noteDokumen || 'Tidak ada catatan.'; $('detail-note').classList.toggle('no-note', !doc.noteDokumen);
     renderHistory();
@@ -238,7 +241,7 @@
     const doc = detailDocument; if (!doc) return;
     const page = pages.range(doc.historyTotal||0, historyPage); historyPage = page.page;
     $('history-count').textContent = `${doc.historyTotal||0} perpindahan`;
-    $('history').innerHTML = doc.history.length ? `<ol class="timeline">${doc.history.map(event => `<li class="history-event"><div class="event-heading"><strong>${e(event.tahapan)}</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route"><span>${e(event.posisiSebelum || event.dari)}</span>${icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
+    $('history').innerHTML = doc.history.length ? `<ol class="timeline">${doc.history.map(event => `<li class="history-event"><div class="event-heading"><strong>Perpindahan dokumen</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route"><span>${e(event.posisiSebelum || event.dari)}</span>${icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
     pages.render($('history-pagination'), page, async next => { const id=selectedId,seq=++historyRequest;try{const h=await repository.historyPage(id,next);if(seq!==historyRequest||selectedId!==id)return;detailDocument={...detailDocument,...h};historyPage=h.historyPage;renderHistory();$('history').scrollIntoView({block:'start'});}catch(error){showToast(error.message);} });
   }
   async function showDetail(id) { const doc = await repository.get(id); selectedId = id; renderDetail(doc); openDialog('detail-dialog'); }
@@ -270,7 +273,13 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDate(); });
   setInterval(updateDate, 60000);
   window.addEventListener('hashchange',()=>refresh().catch(error=>showToast(error.message)));
-  document.addEventListener('akses:berubah',()=>{listRequest++;if(!window.Akses.profile){documents=[];snapshot={total:0,ringkasan:{}};render();}else refresh().catch(error=>showToast(error.message));});
+  document.addEventListener('akses:berubah',()=>{
+    listRequest++;const p=window.Akses.profile,key=p?[p.id,p.peran,p.office_id,p.aktif,p.akses_portal].join('|'):'';
+    if(key!==accessKey){accessKey=key;documents=[];snapshot={total:0,ringkasan:{}};selectedId=null;detailDocument=null;editingDocument=null;historyRequest++;
+      for(const id of ['document-dialog','detail-dialog','movement-dialog'])if($(id).open)closeDialog(id);
+      $('detail-fields').replaceChildren();$('history').replaceChildren();$('detail-position').textContent='';render();}
+    if(p)refresh().catch(error=>showToast(error.message));
+  });
   document.addEventListener('data:muat-ulang',()=>refresh().catch(error=>showToast(error.message)));
   $('refresh-data').addEventListener('click',()=>document.dispatchEvent(new CustomEvent('data:muat-ulang')));
   route(); fillStatuses(); updateDate(); refresh().catch(error => showToast(error.message));

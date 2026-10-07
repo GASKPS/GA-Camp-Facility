@@ -4,7 +4,7 @@
   const { icon, escape: e, dateText, showToast, formError, openDialog, closeDialog } = window.PortalUI;
   const repo = window.SkcStore, domain = window.SkcDomain;
   const picker = window.EmployeeUI.createPicker('skc-employee', 'Karyawan', { allowAdmin: false });
-  let records = [], view = 'pending', collecting = null;
+  let records = [], view = 'pending', collecting = null, collectRequest=0;
   const taken = record => record.status === 'Sudah diambil';
   const link = (url, label) => url ? `<a class="skc-drive-link" href="${e(domain.driveLink(url))}" target="_blank" rel="noopener noreferrer">${e(label)} <span aria-hidden="true">↗</span></a>` : '<span class="skc-no-link">Tidak dilampirkan</span>';
   function render() {
@@ -43,13 +43,13 @@
     await picker.load(); openDialog('skc-dialog'); picker.focus();
   }
   async function beginCollect(id) {
-    const record = await repo.get(id);
+    const seq=++collectRequest,record=await repo.get(id);if(seq!==collectRequest)return;
     if (taken(record)) { await refresh(); selectView('taken'); return; }
     collecting = { id, revision: record.revision, employeeId: record.employeeId };
-    const held = await window.DeviceStore.heldHt(record.employeeId);
+    const held=await window.DeviceStore.heldHt(record.employeeId);if(seq!==collectRequest)return;
     if(held.length) {
       $('skc-ht-person').textContent = `${record.nama} · NIK ${record.nik} · ${held.length} HT`;
-      $('skc-ht-list').innerHTML = held.map(device=>`<div class="skc-ht-item"><div><strong>${e(device.nomor)}</strong><span>${e(device.merek)} · ${e(device.kondisi)}</span></div><button type="button" class="button button-primary" data-skc-return="${e(device.id)}">Sudah, catat pengembalian</button></div>`).join('');
+      $('skc-ht-list').innerHTML = held.map(device=>`<div class="skc-ht-item"><div><strong>${e(device.nomor)}</strong><span>${e(device.merek)} · ${e(device.kondisi)}</span></div></div>`).join('');
       formError('skc-ht-error',''); openDialog('skc-ht-dialog'); return;
     }
     if($('skc-ht-dialog').open) closeDialog('skc-ht-dialog');
@@ -57,12 +57,7 @@
     $('skc-collect-date').textContent = dateText(record.tanggalCuti); formError('skc-collect-error', '');
     openDialog('skc-collect-dialog');
   }
-  $('skc-ht-list').addEventListener('click',event=>{
-    const button=event.target.closest('[data-skc-return]');if(!button||!collecting)return;
-    const id=collecting.id;
-    window.DeviceUI.beginReturn(button.dataset.skcReturn,collecting.employeeId,()=>beginCollect(id)).catch(error=>formError('skc-ht-error',error.message));
-  });
-  $('skc-ht-recheck').addEventListener('click',()=>{if(collecting)beginCollect(collecting.id).catch(error=>formError('skc-ht-error',error.message));});
+  $('skc-ht-continue').addEventListener('click',event=>saveCollection(event.currentTarget,'skc-ht-error','skc-ht-dialog'));
   document.addEventListener('click', event => {
     const button = event.target.closest('[data-skc-action]');
     if (!button) return;
@@ -79,19 +74,18 @@
     } catch (error) { formError('skc-form-error', error.message); }
     finally { button.disabled = false; }
   });
-  $('skc-collect-form').addEventListener('submit', async event => {
-    event.preventDefault(); const button = event.currentTarget.querySelector('[type=submit]');
-    if (button.disabled || !collecting) return;
-    button.disabled = true;
+  async function saveCollection(button,errorId,dialogId) {
+    if(button.disabled||!collecting)return;
+    button.disabled=true;formError(errorId,'');
     try {
-      await repo.collect(collecting.id, collecting.revision);
-      window.FormGuard?.clean($('skc-collect-form')); closeDialog('skc-collect-dialog'); await refresh(); selectView('taken');
-      $('skc-tab-taken').focus(); showToast('SKC masuk ke daftar Sudah diambil.');
-    } catch (error) {
-      if(error.message.includes('HT_BELUM_KEMBALI')) {window.FormGuard?.clean($('skc-collect-form')); closeDialog('skc-collect-dialog');try{await beginCollect(collecting.id);}catch(err){showToast(err.message);}}
-      else formError('skc-collect-error', error.message);
-    }
-    finally { button.disabled = false; }
+      await repo.collect(collecting.id,collecting.revision);
+      window.FormGuard?.clean($('skc-collect-form'));closeDialog(dialogId);await refresh();selectView('taken');
+      collecting=null;$('skc-tab-taken').focus();showToast('SKC masuk ke daftar Sudah diambil.');
+    } catch(error){formError(errorId,error.message);}
+    finally{button.disabled=false;}
+  }
+  $('skc-collect-form').addEventListener('submit',event=>{
+    event.preventDefault();saveCollection(event.currentTarget.querySelector('[type=submit]'),'skc-collect-error','skc-collect-dialog');
   });
   document.addEventListener('employees:changed', () => refresh().catch(error => showToast(error.message)));
   refresh().catch(error => showToast(error.message));

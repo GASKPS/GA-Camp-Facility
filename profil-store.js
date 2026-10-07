@@ -73,7 +73,9 @@
   }
   async function setAccess(person, values) {
     if (!A.superAdmin()) throw new Error('Hanya Super Admin yang boleh mengatur hak akses.');
-    return A.rpc('atur_hak_akses', { p_id: person.id, p_versi: person.versi, p_peran: values.peran, p_aktif: values.aktif, p_akses_portal: values.aksesPortal, p_akses_mess: values.aksesMess });
+    const args={p_id:person.id,p_versi:person.versi,p_peran:values.peran,p_aktif:values.aktif,p_akses_portal:values.aksesPortal,p_akses_mess:values.aksesMess};
+    if(A.administrator()){args.p_office_id=values.officeId||null;return A.rpc('atur_hak_akses_office',args);}
+    return A.rpc('atur_hak_akses',args);
   }
   async function rename(person, name) {
     if (!A.administrator()) throw new Error('Hanya Administrator yang boleh mengubah Nama Akun.');

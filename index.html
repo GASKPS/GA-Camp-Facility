@@ -19,30 +19,32 @@
   <link rel="stylesheet" href="paginasi.css?v=15">
   <script defer src="konfigurasi.js?v=15"></script>
   <script defer src="form-guard.js?v=15"></script>
-  <script defer src="akses.js?v=17"></script>
+  <script defer src="akses.js?v=19"></script>
   <script defer src="preferensi.js?v=15"></script>
   <script defer src="link-store.js?v=15"></script>
-  <script defer src="tracking-store.js?v=15"></script>
+  <script defer src="office-store.js?v=19"></script>
+  <script defer src="tracking-store.js?v=19"></script>
   <script defer src="foto-karyawan.js?v=15"></script>
   <script defer src="employee-store.js?v=15"></script>
   <script defer src="jabatan.js?v=15"></script>
   <script defer src="device-store.js?v=15"></script>
   <script defer src="skc-store.js?v=15"></script>
-  <script defer src="tracking-pdf.js?v=15"></script>
+  <script defer src="tracking-pdf.js?v=19"></script>
   <script defer src="paginasi.js?v=15"></script>
-  <script defer src="portal.js?v=15"></script>
+  <script defer src="portal.js?v=19"></script>
   <script defer src="data-admin.js?v=15"></script>
   <script defer src="employees.js?v=15"></script>
   <script defer src="devices.js?v=15"></script>
-  <script defer src="skc.js?v=15"></script>
+  <script defer src="skc.js?v=19"></script>
   <script defer src="mess-import.js?v=16"></script>
   <script defer src="mess-admin.js?v=17"></script>
-  <script defer src="profil-store.js?v=15"></script>
-  <script defer src="profil.js?v=15"></script>
+  <script defer src="profil-store.js?v=19"></script>
+  <script defer src="profil.js?v=19"></script>
+  <script defer src="office.js?v=19"></script>
   <script defer src="agenda.js?v=16"></script>
   <script defer src="cuti-store.js?v=15"></script>
   <script defer src="cuti.js?v=15"></script>
-  <script defer src="ekspor.js?v=16"></script>
+  <script defer src="ekspor.js?v=19"></script>
   <link rel="stylesheet" href="pembaruan08.css?v=15">
   <link rel="stylesheet" href="cuti.css?v=15">
   <link rel="stylesheet" href="pembaruan14.css?v=15">
@@ -96,8 +98,8 @@
         </section>
         <section class="documents-panel" aria-label="Dokumen dan pengambilan SKC">
           <div class="panel-tabs-row"><div class="document-tabs" role="tablist" aria-label="Kelompok dokumen"><button id="tab-active" class="document-tab active" role="tab" aria-selected="true" aria-controls="document-results" type="button" data-tab="active">Aktif <span id="active-count">0</span></button><button id="tab-done" class="document-tab" role="tab" aria-selected="false" aria-controls="document-results" tabindex="-1" type="button" data-tab="done">Selesai <span id="done-count">0</span></button><button id="tab-skc" class="document-tab" role="tab" aria-selected="false" aria-controls="skc-panel" tabindex="-1" type="button" data-tab="skc">Ambil SKC <span id="skc-count">0</span></button></div><div class="tracking-list-actions"><span class="list-caption" id="tracking-list-caption">Daftar dokumen</span><button class="button button-secondary" id="download-active-pdf" type="button" disabled><span data-icon="download"></span><span id="download-pdf-label">Unduh PDF</span></button></div></div>
-          <div class="filter-bar" id="document-filters"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="search">Cari dokumen</label><input id="search" type="search" placeholder="Cari nama, nomor, atau posisi dokumen…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="filter-bu">Filter BU</label><select id="filter-bu"><option value="">Semua BU</option><option>KPS</option><option>HJF</option><option>OST</option><option>Lainnya</option></select></div><div class="filter-select"><label class="sr-only" for="filter-status">Filter status</label><select id="filter-status"><option value="">Semua status</option></select></div><div class="filter-select"><label for="filter-office">Asal dokumen</label><select id="filter-office"><option value="">Semua Office</option><option>Camp &amp; Facility</option><option>Canteen</option></select></div><div class="filter-select"><label for="filter-from">Dari tanggal</label><input id="filter-from" type="date"></div><div class="filter-select"><label for="filter-to">Sampai tanggal</label><input id="filter-to" type="date"></div></div>
-          <p id="filter-date-error" class="form-error" role="alert" hidden>Tanggal awal tidak boleh setelah tanggal akhir.</p><div id="document-results" role="tabpanel" aria-labelledby="tab-active" tabindex="0"><div class="empty-state"><span class="empty-symbol" data-icon="files"></span><h2>Belum ada dokumen aktif</h2><p>Tambahkan dokumen untuk mulai mencatat perjalanan approval.</p><button class="button button-secondary" type="button" data-action="new-document"><span data-icon="plus"></span>Tambah Dokumen</button></div></div>
+          <div class="filter-bar" id="document-filters"><div class="search-field"><span data-icon="search"></span><label class="sr-only" for="search">Cari dokumen</label><input id="search" type="search" placeholder="Cari nama, nomor, atau posisi dokumen…" autocomplete="off"></div><div class="filter-select"><label class="sr-only" for="filter-bu">Filter BU</label><select id="filter-bu"><option value="">Semua BU</option><option>KPS</option><option>HJF</option><option>OST</option><option>Lainnya</option></select></div><div class="filter-select"><label class="sr-only" for="filter-status">Filter status</label><select id="filter-status"><option value="">Semua status</option></select></div><div class="filter-select"><label for="filter-office">Office</label><select id="filter-office"><option value="">Semua office</option></select></div><div class="filter-select"><label for="filter-from">Dari tanggal</label><input id="filter-from" type="date"></div><div class="filter-select"><label for="filter-to">Sampai tanggal</label><input id="filter-to" type="date"></div></div>
+          <p id="filter-date-error" class="form-error" role="alert" hidden>Tanggal awal tidak boleh setelah tanggal akhir.</p><p class="form-error" id="tracking-office-notice" role="status" hidden></p><div id="document-results" role="tabpanel" aria-labelledby="tab-active" tabindex="0"><div class="empty-state"><span class="empty-symbol" data-icon="files"></span><h2>Belum ada dokumen aktif</h2><p>Tambahkan dokumen untuk mulai mencatat perjalanan approval.</p><button class="button button-secondary" type="button" data-action="new-document"><span data-icon="plus"></span>Tambah Dokumen</button></div></div>
           <footer class="table-footer" id="document-footer"><span id="result-count" role="status" aria-live="polite">0 dokumen</span><div class="pagination" id="document-pagination" hidden></div></footer><p id="download-pdf-status" class="export-status" role="status" aria-live="polite" hidden></p>
           <div id="skc-panel" role="tabpanel" aria-labelledby="tab-skc" hidden>
             <div class="skc-panel-heading"><h2>Pengambilan SKC</h2><p>Surat keterangan cuti karyawan</p></div>
@@ -142,7 +144,7 @@
     </main>
   </div>
 
-<dialog class="form-dialog" id="skc-ht-dialog" aria-labelledby="skc-ht-title"><div class="dialog-heading"><div><p class="dialog-kicker">SEBELUM PENGAMBILAN SKC</p><h2 id="skc-ht-title">Apakah HT sudah dikembalikan?</h2></div><button class="icon-button" type="button" data-close="skc-ht-dialog" aria-label="Tutup pemeriksaan HT"><span data-icon="close"></span></button></div><div class="form-body"><p id="skc-ht-person"></p><p>HT berikut masih tercatat pada karyawan ini. Catat pengembaliannya sebelum melanjutkan pengambilan SKC.</p><div id="skc-ht-list" class="skc-ht-list"></div><p class="form-error" id="skc-ht-error" role="alert" hidden></p></div><div class="dialog-actions"><button type="button" class="button button-secondary" data-close="skc-ht-dialog">Belum dikembalikan</button><button type="button" class="button button-secondary" id="skc-ht-recheck">Periksa lagi</button></div></dialog>
+<dialog class="form-dialog" id="skc-ht-dialog" aria-labelledby="skc-ht-title"><div class="dialog-heading"><div><p class="dialog-kicker">SEBELUM PENGAMBILAN SKC</p><h2 id="skc-ht-title">Karyawan masih tercatat memegang HT</h2></div><button class="icon-button" type="button" data-close="skc-ht-dialog" aria-label="Tutup pemeriksaan HT"><span data-icon="close"></span></button></div><div class="form-body"><p id="skc-ht-person"></p><p>HT berikut masih tercatat pada karyawan ini. Periksa apakah HT sudah dikembalikan. Pengambilan SKC tetap dapat dilanjutkan tanpa mengisi form serah terima.</p><div id="skc-ht-list" class="skc-ht-list"></div><p class="form-error" id="skc-ht-error" role="alert" hidden></p></div><div class="dialog-actions"><button type="button" class="button button-secondary" data-close="skc-ht-dialog">Batal</button><button type="button" class="button button-primary" id="skc-ht-continue">Lanjut tandai SKC diambil</button></div></dialog>
   <dialog class="form-dialog" id="skc-dialog" aria-labelledby="skc-form-title">
     <div class="dialog-heading"><div><p class="dialog-kicker">SURAT KETERANGAN CUTI</p><h2 id="skc-form-title">Tambah SKC</h2></div><button class="icon-button" type="button" data-close="skc-dialog" aria-label="Tutup formulir SKC"><span data-icon="close"></span></button></div>
     <form id="skc-form"><div class="form-body"><p class="form-intro">Kolom bertanda <span class="required">*</span> wajib diisi.</p><div class="form-grid">
@@ -193,8 +195,7 @@
           <div class="field"><label for="doc-type">Jenis dokumen <span class="required">*</span></label><select id="doc-type" name="jenisDokumen" required><option value="">Pilih jenis dokumen</option><option>FORM</option><option>EM</option><option>IM</option><option>Lainnya</option></select></div>
           <div class="field"><label for="doc-number">Nomor dokumen <span class="optional">opsional</span></label><input id="doc-number" name="nomorDokumen" maxlength="100" autocomplete="off"><small>Boleh kosong jika dokumen tidak memiliki nomor.</small></div>
           <div class="field span-two" id="other-type-field" hidden><label for="doc-other-type">Jenis dokumen lainnya <span class="required">*</span></label><input id="doc-other-type" name="jenisDokumenLainnya" maxlength="100" disabled></div>
-          <div class="field"><label for="doc-source">Asal dokumen <span class="required">*</span></label><select id="doc-source" name="asalDokumen" required><option value="">Pilih office asal</option><option>Camp &amp; Facility</option><option>Canteen</option></select><small>Office asal dokumen.</small></div>
-          <div class="field"><label for="doc-purpose">Keperluan <span class="required">*</span></label><select id="doc-purpose" name="keperluan" required><option value="">Pilih keperluan</option><option>Approval</option><option>Tanda Tangan</option><option>Revisi</option><option>Pengarsipan</option><option>Lainnya</option></select></div>
+          <div class="field span-two"><label for="doc-source">Office <span class="required">*</span></label><select id="doc-source" name="officeId" required><option value="">Pilih office</option></select><small id="doc-source-help">Office dokumen.</small></div>
           <div class="field span-two note-field"><label for="doc-note">Note dokumen <span class="optional">opsional</span></label><textarea id="doc-note" name="noteDokumen" rows="3" maxlength="3000"></textarea><small>Komentar atau keterangan mengenai dokumen.</small></div>
         </div><p class="form-error" id="document-error" role="alert" hidden></p>
       </div>
@@ -204,7 +205,7 @@
 
   <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
     <div class="dialog-heading"><div><p class="dialog-kicker" id="detail-id"></p><h2 id="detail-title">Detail dokumen</h2></div><button class="icon-button" type="button" data-close="detail-dialog" aria-label="Tutup detail dokumen"><span data-icon="close"></span></button></div>
-    <div class="detail-body"><p class="edit-success" id="document-edit-success" role="status" hidden>Data dokumen berhasil diperbarui.</p><div class="detail-status-bar"><span id="detail-status"></span><span class="held-label" id="detail-held"></span></div><section class="current-position" aria-label="Posisi terkini"><span class="position-icon" data-icon="user"></span><div><span>Pemegang saat ini</span><strong id="detail-position"></strong><small id="detail-stage"></small></div></section><div id="detail-fields" class="detail-fields"></div><section class="detail-note"><h3>Note dokumen</h3><p id="detail-note"></p></section><div class="history-heading"><h3>Riwayat perpindahan</h3><span id="history-count"></span></div><div id="history"></div><div class="pagination history-pagination" id="history-pagination" hidden></div></div>
+    <div class="detail-body"><p class="edit-success" id="document-edit-success" role="status" hidden>Data dokumen berhasil diperbarui.</p><div class="detail-status-bar"><span id="detail-status"></span><span class="held-label" id="detail-held"></span></div><section class="current-position" aria-label="Posisi terkini"><span class="position-icon" data-icon="user"></span><div><span>Pemegang saat ini</span><strong id="detail-position"></strong></div></section><div id="detail-fields" class="detail-fields"></div><section class="detail-note"><h3>Note dokumen</h3><p id="detail-note"></p></section><div class="history-heading"><h3>Riwayat perpindahan</h3><span id="history-count"></span></div><div id="history"></div><div class="pagination history-pagination" id="history-pagination" hidden></div></div>
     <div class="detail-actions document-detail-actions"><button class="button button-secondary" id="edit-document" data-tulis type="button"><span data-icon="edit"></span>Edit Dokumen</button><button class="button button-primary" id="new-movement" data-tulis type="button"><span data-icon="route"></span>Catat Perpindahan</button><p id="completed-message" hidden>Dokumen ini sudah masuk daftar selesai.</p></div>
   </dialog>
 
@@ -212,9 +213,8 @@
     <div class="dialog-heading"><div><p class="dialog-kicker">PERPINDAHAN DOKUMEN</p><h2 id="movement-title">Catat perpindahan</h2></div><button type="button" class="icon-button" data-close="movement-dialog" aria-label="Tutup formulir perpindahan"><span data-icon="close"></span></button></div>
     <form id="movement-form"><div class="form-body"><p class="actor-line">Petugas pencatat <strong data-current-user></strong></p><div class="selected-document"><span data-icon="file"></span><div><strong id="movement-doc-name"></strong><small id="movement-doc-id"></small></div></div><div class="form-grid">
       <div class="field"><label for="move-date">Tanggal perpindahan <span class="required">*</span></label><input type="date" id="move-date" name="tanggalPerpindahan" required></div>
-      <div class="field"><label for="move-stage">Tahapan <span class="required">*</span></label><input id="move-stage" name="tahapan" list="stage-options" required maxlength="100" autocomplete="off"><datalist id="stage-options"><option value="Penitipan Awal"><option value="Approval 1"><option value="Approval 2"><option value="Approval 3"><option value="Approval 4"><option value="Approval 5"><option value="Approval 6"><option value="Pengembalian"></datalist><small>Pilih tahapan atau tulis tahapan lainnya.</small></div>
       <div class="field"><label for="move-from">Dicatat oleh <span class="required">*</span></label><input id="move-from" name="dari" readonly data-actor-input required maxlength="140"></div>
-      <div class="field"><label for="move-to">Diserahkan kepada <span class="required">*</span></label><input id="move-to" name="kepada" required maxlength="140" autocomplete="off"></div>
+      <div class="field span-two"><label for="move-to">Diserahkan kepada <span class="required">*</span></label><input id="move-to" name="kepada" required maxlength="140" autocomplete="off"></div>
       <div class="field span-two"><label for="move-status">Status dokumen <span class="required">*</span></label><select id="move-status" name="status" required><option value="">Pilih status</option></select></div>
       <div class="field span-two note-field"><label for="move-note">Note perpindahan <span class="optional">opsional</span></label><textarea id="move-note" name="notePerpindahan" rows="3" maxlength="3000"></textarea></div>
     </div><p class="form-error" id="movement-error" role="alert" hidden></p></div><div class="dialog-actions"><button type="button" class="button button-secondary" data-close="movement-dialog">Batal</button><button type="submit" class="button button-primary">Simpan Perpindahan</button></div></form>
