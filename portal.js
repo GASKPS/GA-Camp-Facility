@@ -1,6 +1,7 @@
 (function () {
   'use strict';
   const icons = {
+    box: '<path d="m12 3 9 5v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8M7.5 5.5l9 5"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/>',
     files: '<path d="M8 3h7l4 4v13H8zM15 3v5h4M5 7H3v15h12M11 12h5M11 16h5"/>',
     file: '<path d="M6 3h9l4 4v14H6zM15 3v5h4M9 12h7M9 16h5"/>',
@@ -77,6 +78,7 @@
   window.matchMedia('(min-width:901px)').addEventListener('change', event => { if (event.matches) toggleMenu(false); });
   function route() {
     const pages = { tracking: ['tracking-page', 'Tracking Dokumen'], 'link-kerja': ['links-page', 'Link Kerja'], karyawan: ['employees-page', 'Data Karyawan'], 'ht-hp': ['devices-page', 'Data Perangkat'], mess: ['mess-admin-page','Update Data Mess'], profil: ['profile-page', 'Profil & Pengaturan'], agenda: ['agenda-page','Tamu & Catatan'], cuti: ['cuti-page','Tahunan & Extra'] };
+    pages.stok = ['stok-page', 'Stok Barang & Opname'];
     const requested = window.location.hash.slice(1);
     const routeName = Object.hasOwn(pages, requested) ? requested : 'link-kerja';
     Object.entries(pages).forEach(([name, page]) => { $(page[0]).hidden = name !== routeName; });
@@ -152,9 +154,9 @@
       else $('document-results').innerHTML = empty('Belum ada dokumen aktif', 'Tambahkan dokumen untuk mulai mencatat perjalanan approval.', `<button class="button button-secondary" type="button" data-action="new-document">${icon('plus')}Tambah Dokumen</button>`);
       return;
     }
-    $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">Asal dokumen</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.map(doc => {
+    $('document-results').innerHTML = `<div class="table-scroll"><table><caption class="sr-only">Daftar dokumen ${tab === 'active' ? 'aktif' : 'selesai'}</caption><thead><tr><th scope="col">Dokumen</th><th scope="col">Tanggal masuk</th><th scope="col">Asal dokumen</th><th scope="col">BU</th><th scope="col">Status</th><th scope="col">Tanggal Perpindahan</th><th scope="col">Posisi sekarang</th><th scope="col">Lama tertahan</th><th scope="col"><span class="sr-only">Detail</span></th></tr></thead><tbody>${rows.map(doc => {
       const held = D.holdDays(doc);
-      return `<tr><td data-label="Dokumen"><button class="document-name" type="button" data-document="${e(doc.id)}">${e(doc.namaDokumen)}</button><span class="document-meta">${e(typeText(doc))}${doc.nomorDokumen ? ' · ' + e(doc.nomorDokumen) : ''}</span><span class="document-meta">${e(doc.kode)}</span></td><td data-label="Tanggal masuk" class="date-cell">${e(dateText(doc.tanggalMasuk))}</td><td data-label="Asal dokumen">${e(doc.asalDokumen||'Belum ditentukan')}</td><td data-label="BU"><span class="bu-badge">${e(doc.bu)}</span></td><td data-label="Status">${status(doc.statusTerakhir)}</td><td data-label="Posisi sekarang">${e(doc.posisiSekarang)}</td><td data-label="Lama tertahan"><span class="hold-value ${held > 3 ? 'overdue' : ''}">${held == null ? '—' : held + ' hari'}</span></td><td><button class="detail-row-button" type="button" data-document="${e(doc.id)}" aria-label="Lihat detail ${e(doc.namaDokumen)}">${icon('chevron')}</button></td></tr>`;
+      return `<tr><td data-label="Dokumen"><button class="document-name" type="button" data-document="${e(doc.id)}">${e(doc.namaDokumen)}</button><span class="document-meta">${e(typeText(doc))}${doc.nomorDokumen ? ' · ' + e(doc.nomorDokumen) : ''}</span><span class="document-meta">${e(doc.kode)}</span></td><td data-label="Tanggal masuk" class="date-cell">${e(dateText(doc.tanggalMasuk))}</td><td data-label="Asal dokumen">${e(doc.asalDokumen||'Belum ditentukan')}</td><td data-label="BU"><span class="bu-badge">${e(doc.bu)}</span></td><td data-label="Status">${status(doc.statusTerakhir)}</td><td data-label="Tanggal Perpindahan" class="date-cell">${e(dateText(doc.perpindahanTerakhir))}</td><td data-label="Posisi sekarang">${e(doc.posisiSekarang)}</td><td data-label="Lama tertahan"><span class="hold-value ${held > 3 ? 'overdue' : ''}">${held == null ? '—' : held + ' hari'}</span></td><td><button class="detail-row-button" type="button" data-document="${e(doc.id)}" aria-label="Lihat detail ${e(doc.namaDokumen)}">${icon('chevron')}</button></td></tr>`;
     }).join('')}</tbody></table></div>`;
   }
   async function refresh() {

@@ -29,9 +29,9 @@
   <script defer src="jabatan.js?v=15"></script>
   <script defer src="device-store.js?v=15"></script>
   <script defer src="skc-store.js?v=15"></script>
-  <script defer src="tracking-pdf.js?v=19"></script>
+  <script defer src="tracking-pdf.js?v=21"></script>
   <script defer src="paginasi.js?v=15"></script>
-  <script defer src="portal.js?v=19"></script>
+  <script defer src="portal.js?v=21"></script>
   <script defer src="data-admin.js?v=15"></script>
   <script defer src="employees.js?v=15"></script>
   <script defer src="devices.js?v=15"></script>
@@ -44,13 +44,17 @@
   <script defer src="agenda.js?v=16"></script>
   <script defer src="cuti-store.js?v=15"></script>
   <script defer src="cuti.js?v=15"></script>
-  <script defer src="ekspor.js?v=19"></script>
+  <script defer src="ekspor.js?v=20"></script>
   <link rel="stylesheet" href="pembaruan08.css?v=15">
   <link rel="stylesheet" href="cuti.css?v=15">
   <link rel="stylesheet" href="pembaruan14.css?v=15">
   <link rel="stylesheet" href="agenda.css?v=15">
   <link rel="stylesheet" href="pembaruan15.css?v=15">
   <link rel="stylesheet" href="tema.css?v=15">
+  <link rel="stylesheet" href="stok.css?v=20">
+  <script defer src="stok-domain.js?v=20"></script>
+  <script defer src="stok-store.js?v=20"></script>
+  <script defer src="stok.js?v=20"></script>
 </head>
 <body data-area="portal">
 <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title"><div class="auth-card">
@@ -78,6 +82,7 @@
       <a class="nav-item" href="#ht-hp" data-route="ht-hp"><span data-icon="monitor"></span><span>Data Perangkat</span></a>
       <a class="nav-item" href="#cuti" data-route="cuti" data-writer-menu><span data-icon="clock"></span><span>Tahunan &amp; Extra</span></a>
       <a class="nav-item" href="#mess" data-route="mess"><span data-icon="building"></span><span>Update Data Mess</span></a>
+      <a class="nav-item" href="#stok" data-route="stok"><span data-icon="box"></span><span>Stok Barang &amp; Opname</span></a>
     </nav>
     <div class="sidebar-foot"><button class="profile-trigger" type="button" data-open-profile aria-controls="profile-page" aria-label="Buka Profil dan Pengaturan"><span class="account-avatar" data-account-avatar aria-hidden="true"></span><span class="profile-trigger-text"><strong data-current-user></strong><small data-current-role></small></span><span aria-hidden="true">›</span></button><button type="button" class="sidebar-logout" data-logout><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 17v3H4V4h6v3M9 12h12m-4-4 4 4-4 4"/></svg><span>Keluar dari akun</span></button></div>
   </aside>
@@ -139,6 +144,7 @@
 </section>
       <section class="tracking-page" id="agenda-page" hidden></section>
       <section class="tracking-page cuti-page" id="cuti-page" hidden></section>
+      <section class="tracking-page stok-page" id="stok-page" hidden aria-label="Stok Barang dan Opname"></section>
       <section class="tracking-page" id="profile-page" aria-label="Profil dan Pengaturan" hidden></section>
       <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services" src="link-kerja.html?v=15" loading="lazy"></iframe></section>
     </main>

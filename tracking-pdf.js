@@ -59,9 +59,9 @@
       styles: { font: 'GA', fontSize: 8.2, cellPadding: 2.1, overflow: 'linebreak', valign: 'top', textColor: [0, 0, 0], lineColor: [218, 226, 234], lineWidth: 0.15 },
       headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [224, 234, 245], textColor: [0, 0, 0], fontSize: 8 },
       alternateRowStyles: { fillColor: [255, 255, 255] },
-      head: [['No', 'Tanggal Mulai', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'BU', 'Status', 'Posisi sekarang', 'Tanggal Posisi Terakhir', 'Note Perpindahan']],
-      body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), dateText(d.perpindahanTerakhir||d.tanggalMasuk), text(d.notePerpindahanTerakhir)]),
-      columnStyles: Object.fromEntries([10, 22, 39, 25, 16, 12, 27, 31, 24, 67].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 ? { halign: 'center' } : {}) }])),
+      head: [['No', 'Tanggal Mulai', 'Nama dokumen', 'Nomor dokumen', 'Jenis', 'BU', 'Status', 'Posisi sekarang', 'Tanggal Perpindahan', 'Note Perpindahan']],
+      body: rows.map((d, i) => [String(i + 1), dateText(d.tanggalMasuk), text(d.namaDokumen), text(d.nomorDokumen), text(D.typeText(d)), text(d.bu), text(d.statusTerakhir), text(d.posisiSekarang), dateText(d.perpindahanTerakhir), text(d.notePerpindahanTerakhir)]),
+      columnStyles: Object.fromEntries([10, 22, 39, 25, 16, 12, 27, 31, 26, 65].map((cellWidth, i) => [i, { cellWidth, ...(i === 0 ? { halign: 'center' } : {}) }])),
       willDrawPage: header
     });
     const total = doc.getNumberOfPages();
