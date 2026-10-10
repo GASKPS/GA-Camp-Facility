@@ -283,6 +283,5 @@
     if(p)refresh().catch(error=>showToast(error.message));
   });
   document.addEventListener('data:muat-ulang',()=>refresh().catch(error=>showToast(error.message)));
-  $('refresh-data').addEventListener('click',()=>document.dispatchEvent(new CustomEvent('data:muat-ulang')));
   route(); fillStatuses(); updateDate(); refresh().catch(error => showToast(error.message));
 })();
