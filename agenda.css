@@ -47,3 +47,22 @@ body[data-area="portal"] .agenda-count{font-size:.875rem}
  body[data-area="portal"] .agenda-row-actions .button{min-height:44px;padding-left:16px;padding-right:16px}
 }
 @media(max-width:480px){body[data-area="portal"] .agenda-detail-fields{grid-template-columns:1fr}body[data-area="portal"] .agenda-row-status{max-width:115px}}
+
+/* Kartu Tamu: lima pada tampilan ringkas, daftar lengkap melalui Selengkapnya. */
+body[data-area="portal"] .guest-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+body[data-area="portal"] .guest-card{display:flex;flex-direction:column;min-width:0;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 8px rgba(23,42,65,.025);overflow-wrap:anywhere}
+body[data-area="portal"] .guest-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+body[data-area="portal"] .guest-card-head>div{min-width:0;flex:1}
+body[data-area="portal"] .guest-card-kind{display:block;font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:5px}
+body[data-area="portal"] .guest-card h2{font-size:16px;font-weight:650;line-height:1.5;color:var(--text);margin:0}
+body[data-area="portal"] .guest-card-head .status-badge{flex:none;max-width:45%;white-space:normal;font-size:12px;line-height:1.4;text-align:center}
+body[data-area="portal"] .guest-card-fields{display:grid;gap:14px;margin:20px 0;flex:1}
+body[data-area="portal"] .guest-card-fields dt{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:3px}
+body[data-area="portal"] .guest-card-fields dd{margin:0;font-size:14px;color:var(--text);line-height:1.5}
+body[data-area="portal"] .guest-card-footer{display:flex;justify-content:flex-end;padding-top:14px;border-top:1px solid var(--line)}
+body[data-area="portal"] .guest-card-footer .button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 12px;font-size:13px}
+body[data-area="portal"] .guest-card-footer svg{width:16px;height:16px}
+body[data-area="portal"] .guest-more{display:flex;justify-content:center;padding:22px 0 8px}
+body[data-area="portal"] .guest-more .button{min-height:44px;min-width:170px;padding:10px 22px}
+@media(max-width:1100px){body[data-area="portal"] .guest-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){body[data-area="portal"] .guest-card-grid{grid-template-columns:1fr;gap:14px}body[data-area="portal"] .guest-card{padding:18px}}
