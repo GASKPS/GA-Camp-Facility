@@ -4,13 +4,15 @@
   const escape = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const initials = name => (name || '').trim().split(/\s+/).slice(0, 2).map(x => [...x][0] || '').join('').toLocaleUpperCase('id-ID');
   const isPortal = !!$('profile-page');
+  const sectionNames = {profile:'Profil Saya',password:'Ganti Kata Sandi',users:'Hak Akses',offices:'Kelola Office',download:'Download'};
+  const sectionDescriptions = {profile:'Foto dan identitas akun kerja Anda.',password:'Perbarui kata sandi untuk akun Portal GA dan Web Mess.',users:'Atur peran dan akses pengguna.',offices:'Kelola daftar office dan statusnya.',download:'Unduh data sesuai akses akun Anda.'};
   let host = $('profile-page');
   if (!host) { host = document.createElement('section'); host.id = 'profile-page'; host.className = 'mess-profile-page'; host.hidden = true; $('app-shell').append(host); }
   host.innerHTML = `
     <section id="ga-profile-page" class="ga-profile" aria-labelledby="ga-profile-title">
-      <div class="ga-profile-header"><h1 id="ga-profile-title" tabindex="-1">Profil &amp; Pengaturan</h1><button type="button" class="ga-profile-button" id="ga-profile-back">Kembali</button></div>
+      <div class="ga-profile-header"><div><h1 id="ga-profile-title" tabindex="-1">Profil &amp; Pengaturan</h1>${isPortal?'<p class="ga-profile-subtitle" id="ga-profile-description"></p>':''}</div><button type="button" class="ga-profile-button" id="ga-profile-back">Kembali</button></div>
       <div class="ga-profile-surface">
-      <div class="ga-profile-tabs" role="tablist" aria-label="Pengaturan akun">
+      <div class="ga-profile-tabs" role="tablist" aria-label="Pengaturan akun"${isPortal?' hidden':''}>
         <button class="ga-profile-tab" id="ga-tab-profile" type="button" role="tab" aria-selected="true" aria-controls="ga-panel-profile" data-profile-tab="profile">Profil Saya</button>
         <button class="ga-profile-tab" id="ga-tab-password" type="button" role="tab" aria-selected="false" aria-controls="ga-panel-password" tabindex="-1" data-profile-tab="password">Ganti Kata Sandi</button>
         <button class="ga-profile-tab" id="ga-tab-users" type="button" role="tab" aria-selected="false" aria-controls="ga-panel-users" tabindex="-1" data-profile-tab="users" hidden>Hak Akses</button>
@@ -57,7 +59,8 @@
       <div id="ga-panel-download" class="ga-profile-body" role="tabpanel" aria-labelledby="ga-tab-download" hidden></div>
       </div>
     </section>`;
-  let currentTab = 'profile', users = [], userOffset = 0, userQuery = '', userRequest = 0, editing = null;
+  if(isPortal)for(const name of Object.keys(sectionNames)){$('ga-panel-'+name).setAttribute('role','region');$('ga-panel-'+name).setAttribute('aria-labelledby','ga-profile-title');}
+  let currentTab = 'profile', requestedTab = 'profile', users = [], userOffset = 0, userQuery = '', userRequest = 0, editing = null;
   let photoBlob = null, photoUrl = '', photoGeneration = 0, photoVersion = 0, photoBusy = false, passwordBusy = false, accessBusy = false;
   let pageVisible = false, previousRoute = isPortal ? '#link-kerja' : '';
   let avatarRequest = 0, avatarPath = null, avatarUrl = '', avatarExpiry = 0;
@@ -92,16 +95,16 @@
     $('ga-tab-users').hidden = !A.superAdmin();
     $('ga-tab-download').hidden = !A.canWrite();
     $('ga-tab-offices').hidden=!isPortal||!A.administrator();
-    if(!A.administrator()&&currentTab==='offices')selectTab('profile');
+    if(!A.administrator()&&currentTab==='offices')selectTab('profile',true);
     $('ga-admin-account-tools').hidden = !A.administrator();
     if(!A.administrator()){$('ga-admin-password-form').reset();$('ga-rename-form').reset();}
-    if(!A.canWrite()&&currentTab==='download')selectTab('profile');
+    if(!A.canWrite()&&currentTab==='download')selectTab('profile',true);
     [...$('ga-access-role').options].forEach(o=>{o.disabled=!A.administrator()&&['administrator','super_admin'].includes(o.value);o.hidden=o.disabled;});
     document.dispatchEvent(new CustomEvent('profil:siap'));
-    if (!A.superAdmin() && currentTab === 'users') selectTab('profile');
+    if (!A.superAdmin() && currentTab === 'users') selectTab('profile',true);
     if (!A.superAdmin()) { users = []; editing = null; $('ga-users-list').replaceChildren(); closeAccess(); }
     $('ga-photo-remove').hidden = !p?.foto_path;
-    document.querySelectorAll('[data-open-profile]').forEach(button => { button.disabled = !p; });
+    syncProfileLinks();
     avatar();
     if (p && !pageVisible && location.hash === '#profil') routeProfile();
   }
@@ -119,19 +122,35 @@
     editing = null; $('ga-access-editor').hidden = true;
     $('ga-access-form').reset(); $('ga-rename-form').reset(); $('ga-admin-password-form').reset(); message('ga-access-message', '');message('ga-rename-message','');message('ga-admin-password-message','');
   }
-  function selectTab(tab) {
-    if(tab!==currentTab && window.FormGuard && !FormGuard.leave($('ga-panel-'+currentTab)))return;
-    if (!['profile', 'password', 'users', 'offices', 'download'].includes(tab) || (tab === 'users' && !A.superAdmin()) || (tab==='download'&&!A.canWrite()) || (tab==='offices'&&(!isPortal||!A.administrator()))) return;
+  function canOpenTab(tab){
+    return !!A.profile && Object.hasOwn(sectionNames,tab) && (tab!=='users'||A.superAdmin()) && (tab!=='offices'||(isPortal&&A.administrator())) && (tab!=='download'||A.canWrite());
+  }
+  function syncProfileLinks(){
+    document.querySelectorAll('[data-open-profile]').forEach(button=>{
+      const section=button.dataset.profileSection||'profile';button.disabled=!canOpenTab(section);
+      if(button.dataset.profileSection&&['users','offices','download'].includes(section))button.hidden=!canOpenTab(section);
+      if(pageVisible&&(!button.dataset.profileSection||section===currentTab))button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+    });
+  }
+  function updateSectionTitle(){
+    if(!isPortal)return;$('ga-profile-title').textContent=sectionNames[currentTab];$('ga-profile-description').textContent=sectionDescriptions[currentTab];
+    if(pageVisible){$('page-label').textContent=sectionNames[currentTab];document.title=sectionNames[currentTab]+' · GA Services';}
+  }
+  function selectTab(tab,force=false) {
+    if(!canOpenTab(tab))return false;
+    if(!force&&tab!==currentTab && window.FormGuard && !FormGuard.leave($('ga-panel-'+currentTab)))return false;
     if (currentTab === 'password' && tab !== 'password' && !passwordBusy) resetPassword();
     currentTab = tab;
     for (const name of ['profile', 'password', 'users', 'offices', 'download']) { $('ga-tab-' + name).setAttribute('aria-selected', String(tab === name)); $('ga-tab-' + name).tabIndex = tab === name ? 0 : -1; $('ga-panel-' + name).hidden = tab !== name; }
+    syncProfileLinks();updateSectionTitle();
     if (tab === 'users') loadUsers(true);
     if(tab==='offices')window.OfficeUI.loadManager().catch(error=>message('ga-office-message',error.message,'error'));
+    return true;
   }
   async function preparePage() {
     clearPhoto(); resetPassword(); closeAccess();
     for (const id of ['ga-photo-message', 'ga-password-message']) message(id, '');
-    photoVersion = A.profile?.versi_foto; selectTab('profile'); account();
+    const next=requestedTab;photoVersion = A.profile?.versi_foto; account();selectTab(canOpenTab(next)?next:'profile');
     $('ga-profile-title').focus({preventScroll:true});
     try { await A.refreshProfile(); photoVersion = A.profile?.versi_foto; }
     catch (error) { message('ga-photo-message', error.message, 'error'); }
@@ -145,15 +164,18 @@
       document.title = visible ? 'Profil & Pengaturan · Mess Karyawan' : 'Mess Karyawan · HKOC';
     }
     const changed = visible !== pageVisible; pageVisible = visible;
-    document.querySelectorAll('[data-open-profile]').forEach(button => { if (visible) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current'); });
+    syncProfileLinks();updateSectionTitle();
     if (changed && visible) { window.scrollTo(0,0); preparePage(); }
-    if (changed && !visible) { clearPhoto(); resetPassword(); closeAccess(); userRequest++; users = []; $('ga-users-list').replaceChildren(); }
+    if (changed && !visible) { requestedTab='profile';clearPhoto(); resetPassword(); closeAccess(); userRequest++; users = []; $('ga-users-list').replaceChildren(); }
   }
-  function openProfile() {
-    if (!A.profile) return;
+  function openProfile(event) {
+    const next=event?.currentTarget?.dataset.profileSection||'profile';
+    if (!canOpenTab(next)) return;
+    if(pageVisible&&next!==currentTab&&window.FormGuard&&!FormGuard.leave(host))return;
+    requestedTab=next;
     if ($('sidebar')?.classList.contains('open')) $('close-menu').click();
     if (location.hash !== '#profil') location.hash = 'profil';
-    else { routeProfile(); $('ga-profile-title').focus({preventScroll:true}); }
+    else { if(selectTab(next)){routeProfile();$('ga-profile-title').focus({preventScroll:true});} }
   }
   document.querySelectorAll('[data-open-profile]').forEach(button => button.addEventListener('click', openProfile));
   $('ga-profile-back').addEventListener('click', () => { location.hash = previousRoute; });

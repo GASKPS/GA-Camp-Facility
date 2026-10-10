@@ -23,7 +23,7 @@
     menu.setAttribute('aria-hidden', 'false');
     trigger.setAttribute('aria-expanded', 'true');
     menu.classList.add('is-open');
-    const enabled = items.filter(item => !item.disabled);
+    const enabled = items.filter(item => !item.disabled && !item.hidden);
     (last ? enabled.at(-1) : enabled[0])?.focus({preventScroll:true});
   }
 
@@ -41,7 +41,7 @@
     }
     if (!['ArrowDown','ArrowUp','Home','End'].includes(event.key)) return;
     event.preventDefault();
-    const enabled = items.filter(item => !item.disabled);
+    const enabled = items.filter(item => !item.disabled && !item.hidden);
     if (!enabled.length) return;
     const current = enabled.indexOf(document.activeElement);
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? enabled.length - 1
