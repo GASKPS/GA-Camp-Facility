@@ -1,0 +1,1 @@
+import{H as e}from"./ui-rLKkgYdb.js";var t=[[`belum`,`Belum masuk hunian`],[`fasilitas`,`Fasilitas belum lengkap`],[`lengkap`,`Sudah lengkap`]];function n(t){return t?.status!==`aktif`||!t.kamar_id?``:t.tanggal_masuk_mess_hunian?e(t)?`lengkap`:`fasilitas`:`belum`}function r(e,t){return!t||n(e)===t}export{r as n,n as r,t};

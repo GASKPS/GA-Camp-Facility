@@ -1,0 +1,1 @@
+import{b as e,x as t}from"./ui-rLKkgYdb.js";var n=t();function r({employee:t,fallback:r=`—`}){let i=e();return t?(0,n.jsx)(`button`,{type:`button`,className:`text-btn`,onClick:()=>i.openModal(`detail`,{record:t}),children:t.nama||t.nik}):r}export{r as t};
