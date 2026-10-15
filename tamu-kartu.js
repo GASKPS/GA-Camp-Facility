@@ -32,5 +32,22 @@
   if(unique.length!==total)throw new Error('Data tamu berubah saat dimuat. Muat ulang daftar untuk melihat data terbaru.');
   return unique;
  }
- g.TamuKartu=Object.freeze({group,collect});
+ function filter(data,options={}){
+  const query=normal(options.query);
+  return data.filter(person=>{
+   const active=!['Keluar Site','Batal'].includes(person.status),date=person.tanggal_kedatangan||'';
+   if(options.view==='aktif'&&!active)return false;
+   if(options.view==='riwayat'&&(active||person.disimpan))return false;
+   if(options.kind&&person.jenis!==options.kind)return false;
+   if(options.status&&person.status!==options.status)return false;
+   if(options.from&&(!date||date<options.from))return false;
+   if(options.to&&(!date||date>options.to))return false;
+   return !query||[person.nama,person.asal].some(value=>normal(value).includes(query));
+  });
+ }
+ function tableRows(data){
+  const ordered=group(data).sort((a,b)=>b.tanggal.localeCompare(a.tanggal)||a.asal.localeCompare(b.asal,'id-ID',{sensitivity:'base',numeric:true})||a.jenis.localeCompare(b.jenis)||a.status.localeCompare(b.status));
+  return ordered.flatMap(value=>value.members.map(person=>({...person,_guestGroupKey:value.key})));
+ }
+ g.TamuKartu=Object.freeze({group,collect,filter,tableRows});
 })(window);
