@@ -21,7 +21,7 @@
     document.body.classList.toggle('mode-pratinjau', state.preview);
     document.querySelectorAll('[data-current-user]').forEach(el => { el.textContent = state.profile?.nama || 'Pratinjau tampilan'; });
     document.querySelectorAll('[data-actor-input]').forEach(el => { el.value = state.profile?.nama || ''; });
-    document.querySelectorAll('[data-current-role]').forEach(el => { el.textContent = ({administrator:'Administrator',super_admin:'Super Admin',admin:'Admin',pembaca:'Hanya lihat'})[state.profile?.peran] || 'Belum terhubung'; });
+    document.querySelectorAll('[data-current-role]').forEach(el => { el.textContent = ({administrator:'Administrator',super_admin:'Super Admin',admin:'Admin',pembaca:'Hanya lihat',crew:'Crew'})[state.profile?.peran] || 'Belum terhubung'; });
     document.querySelectorAll('[data-super-admin]').forEach(el => { el.hidden = !superAdmin(); });
     document.querySelectorAll('[data-administrator]').forEach(el => { el.hidden = !administrator(); });
     document.querySelectorAll('[data-preview-notice]').forEach(el => { el.hidden = !state.preview; });
@@ -30,7 +30,7 @@
   async function hydrate(user) {
     if (!user) { state.profile = null; $('app-shell').hidden = true; $('auth-screen').hidden = false; document.dispatchEvent(new CustomEvent('akses:berubah')); return; }
     const { data, error } = await state.client.from('profil_pengguna').select('*').eq('id',user.id).single();
-    if (error || !data?.aktif || (!['administrator','super_admin'].includes(data.peran) && !data[area === 'mess' ? 'akses_mess' : 'akses_portal'])) {
+    if (error || !data?.aktif || (data.peran==='crew'&&area!=='portal') || (!['administrator','super_admin'].includes(data.peran) && !data[area === 'mess' ? 'akses_mess' : 'akses_portal'])) {
       state.profile = null;
       document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
       $('app-shell').hidden = true; $('auth-screen').hidden = false;
@@ -83,7 +83,22 @@
     return state.client;
   }
   async function rpc(name,args,write = false) {
-    const client = await requireClient(write), {data,error} = await client.rpc(name,args);
+    const client = await requireClient(write), controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut=true; controller.abort(); }, 30000);
+    let response;
+    try {
+      let request = client.rpc(name,args);
+      // Kiriman punya kunci idempotensi sendiri; SDK tidak mengulang RPC otomatis.
+      if (typeof request.retry === 'function') request=request.retry(false);
+      if (typeof request.abortSignal === 'function') request=request.abortSignal(controller.signal);
+      response = await request;
+      if (timedOut) throw Object.assign(new Error('Server belum mengirim konfirmasi. Gunakan Periksa penyimpanan sebelum mengirim ulang.'), {code:'RPC_TIMEOUT'});
+    } catch (err) {
+      if (timedOut) throw Object.assign(new Error('Server belum mengirim konfirmasi. Gunakan Periksa penyimpanan sebelum mengirim ulang.'), {code:'RPC_TIMEOUT'});
+      throw err;
+    } finally { clearTimeout(timer); }
+    const {data,error} = response;
     if (error) throw Object.assign(new Error(errorText(error)), {code: error.code});
     // PostgREST represents composite row results as arrays, even for one row.
     const rows = ['simpan_office','atur_hak_akses_office','simpan_link_kerja','ubah_nama_akun','simpan_foto_karyawan','atur_masa_extra','simpan_karyawan','simpan_dokumen','catat_perpindahan_dokumen','simpan_perangkat','catat_serah_terima','tambah_skc','ambil_skc','terbitkan_impor_mess','simpan_jabatan','simpan_foto_profil','atur_hak_akses','simpan_tamu','simpan_catatan_admin','ubah_status_catatan','simpan_extra','catat_pemakaian_cuti'];

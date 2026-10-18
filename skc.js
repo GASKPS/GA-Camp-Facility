@@ -4,7 +4,7 @@
   const { icon, escape: e, dateText, showToast, formError, openDialog, closeDialog } = window.PortalUI;
   const repo = window.SkcStore, domain = window.SkcDomain;
   const picker = window.EmployeeUI.createPicker('skc-employee', 'Karyawan', { allowAdmin: false });
-  let records = [], view = 'pending', collecting = null, collectRequest=0;
+  let records = [], view = 'pending', collecting = null, collectRequest=0,opening=false;
   const taken = record => record.status === 'Sudah diambil';
   const link = (url, label) => url ? `<a class="skc-drive-link" href="${e(domain.driveLink(url))}" target="_blank" rel="noopener noreferrer">${e(label)} <span aria-hidden="true">↗</span></a>` : '<span class="skc-no-link">Tidak dilampirkan</span>';
   function render() {
@@ -38,9 +38,11 @@
       selectView(next); $('skc-tab-' + next).focus();
     });
   });
-  async function newSkc() {
-    $('skc-form').reset(); formError('skc-form-error', '');
-    await picker.load(); openDialog('skc-dialog'); picker.focus();
+  async function resetForm(){$('skc-form').reset();formError('skc-form-error','');await picker.load();window.FormGuard?.clean($('skc-form'));}
+  window.SkcFormUI=Object.freeze({reset:resetForm,focus:()=>picker.focus()});
+  async function newSkc(){
+    if(opening||!window.Akses.canWrite()||$('skc-dialog').open)return;opening=true;const owner=window.Kiriman33?.identity();
+    try{await resetForm();await window.SkcInputUI?.prepare();if(!window.Akses.canWrite()||owner!==window.Kiriman33?.identity())return;openDialog('skc-dialog');window.SkcInputUI?window.SkcInputUI.focus():picker.focus();}finally{opening=false;}
   }
   async function beginCollect(id) {
     const seq=++collectRequest,record=await repo.get(id);if(seq!==collectRequest)return;
@@ -67,12 +69,12 @@
   $('skc-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = form.querySelector('[type=submit]');
     if (!form.reportValidity() || button.disabled) return;
-    button.disabled = true;
+    button.disabled = true;window.SkcInputUI?.setFormBusy(true);
     try {
       await repo.create({ ...Object.fromEntries(new FormData(form)), employeeId: picker.read().employeeId });
       window.FormGuard?.clean($('skc-form')); closeDialog('skc-dialog'); await refresh(); selectView('pending'); showToast('SKC ditambahkan ke daftar Belum diambil.');
     } catch (error) { formError('skc-form-error', error.message); }
-    finally { button.disabled = false; }
+    finally { button.disabled = false;window.SkcInputUI?.setFormBusy(false); }
   });
   async function saveCollection(button,errorId,dialogId) {
     if(button.disabled||!collecting)return;
@@ -87,6 +89,7 @@
   $('skc-collect-form').addEventListener('submit',event=>{
     event.preventDefault();saveCollection(event.currentTarget.querySelector('[type=submit]'),'skc-collect-error','skc-collect-dialog');
   });
+  document.addEventListener('skc:batch-saved',()=>{selectView('pending');refresh().catch(error=>showToast(error.message));});
   document.addEventListener('employees:changed', () => refresh().catch(error => showToast(error.message)));
   refresh().catch(error => showToast(error.message));
 document.addEventListener('akses:berubah',()=>refresh().catch(error=>showToast(error.message)));
