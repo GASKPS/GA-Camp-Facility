@@ -117,11 +117,16 @@
       } else if (column.dataKey === 'handover') {
         doc.setFont('GA', 'normal').setFontSize(7.4).setTextColor(...muted);
         doc.setDrawColor(...muted).setLineWidth(0.16);
-        ['Nama:', 'Tanggal:', 'Paraf:'].forEach((label, i) => {
-          const y = cell.y + 7 + i * 7.3;
-          doc.text(label, x, y);
-          doc.line(x + 13.3, y + 0.7, cell.x + cell.width - cell.padding('right'), y + 0.7);
-        });
+        const end = cell.x + cell.width - cell.padding('right');
+        const lineStart = (label, start) => start + doc.getTextWidth(label) + 1.1;
+        const field = (label, start, stop, y) => {
+          doc.text(label, start, y);
+          doc.line(lineStart(label, start), y + 0.7, stop, y + 0.7);
+        };
+        const dateEnd = lineStart('Tgl:', x) + 18.5;
+        field('Nama:', x, end, cell.y + 5.4);
+        field('Tgl:', x, dateEnd, cell.y + 11.6);
+        field('Paraf:', dateEnd + 2, end, cell.y + 11.6);
       }
     }
     doc.autoTable({
@@ -149,8 +154,8 @@
         position: { cellWidth: 37, cellPadding: { top: 2.6, bottom: 7.1, left: 2.6, right: 2.6 } },
         moved: { cellWidth: 26 },
         note: { cellWidth: 58 },
-        // Reserve room for all three lines even if a long note splits this row.
-        handover: { cellWidth: tableWidth - 224, cellPadding: { top: 24, bottom: 0, left: 2.6, right: 2.6 }, minCellHeight: 26 }
+        // Reserve two writing lines even on the first fragment of a long row.
+        handover: { cellWidth: tableWidth - 224, cellPadding: { top: 12.4, bottom: 0, left: 2.6, right: 2.6 }, minCellHeight: 16 }
       },
       didParseCell({ section, cell, column }) {
         if (section === 'head' && column.dataKey === 'no') {
