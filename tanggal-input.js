@@ -73,6 +73,7 @@
   const button=document.createElement('button');button.type='button';button.className='ga-date-button';button.tabIndex=-1;button.setAttribute('aria-label','Pilih tanggal, '+(input.getAttribute('aria-label')||'kalender'));button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','ga-date30-dialog');button.setAttribute('aria-expanded','false');button.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>';wrapper.append(button);states.set(input,{button,options});
   input.value=format(input.value);input.removeAttribute('inputmode');input.placeholder='DD/MM/YYYY';input.setAttribute('aria-keyshortcuts','Alt+ArrowDown');input.title='Hari/bulan/tahun · Alt+↓ untuk kalender';
   button.addEventListener('click',()=>open(input));input.addEventListener('keydown',event=>{if(event.altKey&&event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();open(input);}});
+  input.addEventListener('input',()=>feedback(input));
   input.addEventListener('blur',()=>{const next=format(input.value);if(next!==input.value){input.value=next;input.dispatchEvent(new Event('input',{bubbles:true}));}feedback(input);});sync(input);
  }
  document.addEventListener('akses:berubah',()=>close(false),true);g.addEventListener('resize',()=>close());g.addEventListener('hashchange',()=>close(false));

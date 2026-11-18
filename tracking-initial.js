@@ -1,12 +1,13 @@
 (function(g){
  'use strict';
  const A=g.Akses,S=g.TrackingInputStore,D=g.TrackingInputDomain,$=id=>document.getElementById(id),form=$('document-form'),dialog=$('document-dialog');
- const ids=['doc-initial-position','doc-initial-date','doc-initial-status'];let busy=false,waiting=false,editing=false,identity='',locks=null,sequence=0;
+ const ids=['doc-initial-position','doc-initial-date','doc-initial-status'];let busy=false,waiting=false,editing=false,identity='',locks=null,baseline=null,sequence=0;
+ const controls=()=>[...form.elements,...dialog.querySelectorAll('[data-close]')].map(el=>({el,disabled:el.disabled}));
  const key=()=>{const p=A.profile;return p?[p.id,p.peran,p.office_id,p.aktif,p.akses_portal].join('|'):'';};
  const hasInitial=()=>!editing&&$('doc-initial-enabled').checked;
  function sync(){
   const locked=busy||waiting;
-  if(locked&&!locks)locks=[...form.elements,...dialog.querySelectorAll('[data-close]')].map(el=>({el,disabled:el.disabled}));
+  if(locked&&!locks)locks=baseline||controls();
   if(locked)locks.forEach(({el})=>{el.disabled=true;});
   else if(locks){locks.forEach(({el,disabled})=>{el.disabled=disabled;});locks=null;}
   dialog.querySelectorAll('[data-close]').forEach(button=>{button.disabled=busy;});
@@ -15,11 +16,11 @@
   $('doc-initial-check').disabled=busy;$('doc-initial-retry').disabled=busy;$('doc-initial-retry').hidden=!S.pending?.canRetry;
   $('doc-initial-date').min=$('doc-date').value;$('doc-initial-date').max=g.TrackingDomain.today();
  }
- function configure(isEditing){sequence++;identity=key();editing=isEditing;busy=false;waiting=false;sync();}
+ function configure(isEditing){sequence++;busy=false;waiting=false;sync();identity=key();editing=isEditing;baseline=controls();waiting=!editing&&!!S.pending;sync();}
  async function save(data){
-  if(!hasInitial())throw new Error('Centang Dokumen sudah berjalan untuk mengisi kondisi awal.');
+  if(editing)throw new Error('Buka formulir tambah dokumen untuk membuat dokumen baru.');
   if(identity!==key()||!A.canWrite())throw new Error('Akun berubah. Buka kembali input dokumen.');
-  const row={namaDokumen:data.namaDokumen,tanggalMasuk:data.tanggalMasuk,bu:data.bu,jenis:data.jenisDokumen==='Lainnya'?data.jenisDokumenLainnya:data.jenisDokumen,nomorDokumen:data.nomorDokumen,officeId:A.administrator()?data.officeId:A.profile.office_id,noteDokumen:data.noteDokumen,posisiAwal:data.posisiAwal,tanggalPosisiAwal:data.tanggalPosisiAwal,statusAwal:data.statusAwal};
+  const row={namaDokumen:data.namaDokumen,tanggalMasuk:data.tanggalMasuk,bu:data.bu,jenis:data.jenisDokumen==='Lainnya'?data.jenisDokumenLainnya:data.jenisDokumen,nomorDokumen:data.nomorDokumen,officeId:A.administrator()?data.officeId:A.profile.office_id,noteDokumen:data.noteDokumen,...(hasInitial()?{posisiAwal:data.posisiAwal,tanggalPosisiAwal:data.tanggalPosisiAwal,statusAwal:data.statusAwal}:{})};
   const result=D.validate([row],{today:g.TrackingDomain.today(),officeId:A.profile.office_id,administrator:A.administrator(),offices:g.OfficeStore.records});
   if(result.issues.length)throw new Error(Object.values(result.issues[0].errors).join(' '));
   const seq=sequence;busy=true;sync();
@@ -41,6 +42,7 @@
  ids.forEach(id=>{$(id).addEventListener('input',sync);$(id).addEventListener('change',sync);});$('doc-date').addEventListener('change',sync);
  $('doc-initial-check').addEventListener('click',()=>recover(false));$('doc-initial-retry').addEventListener('click',()=>recover(true));
  dialog.addEventListener('cancel',event=>{if(busy){event.preventDefault();event.stopImmediatePropagation();}},true);
+ dialog.addEventListener('close',()=>{if(!busy){waiting=false;sync();baseline=null;}});
  document.addEventListener('akses:berubah',()=>{if(identity&&identity!==key()){sequence++;busy=false;waiting=false;sync();form.reset();g.FormGuard?.clean(form);identity='';}},true);
  g.TrackingInitialUI=Object.freeze({configure,hasInitial,save,sync});
 })(window);

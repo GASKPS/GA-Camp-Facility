@@ -1,0 +1,13 @@
+/* Login protection only; workspace layouts are unchanged. */
+.auth-card .auth-verification{margin-top:20px;min-width:0}
+.auth-card .auth-verification p{font-size:13px;line-height:1.5;margin:8px 0 0;color:#586b80}
+.auth-card .auth-verification p[data-state="error"],.auth-card .auth-verification p[data-state="unconfigured"]{color:#9b392d}
+#auth-turnstile{width:100%;min-width:0}
+.auth-verification-retry{display:inline-flex;align-items:center;min-height:36px;border:1px solid #cdd8e5;border-radius:6px;background:transparent;color:#234b78;padding:6px 10px;margin-top:10px;font:600 13px/1.4 Inter,Arial,sans-serif;cursor:pointer}
+.auth-verification-retry:focus-visible{outline:3px solid #b4cce7;outline-offset:2px}
+.auth-card .auth-wait{padding:11px 12px;margin:16px 0 0;border:1px solid #e5cc96;border-radius:7px;background:#fff8e9;color:#76511b;font-size:13px;line-height:1.6;font-variant-numeric:tabular-nums}
+.auth-card .auth-submit:disabled{cursor:default}
+html[data-theme="dark"] .auth-card .auth-verification p{color:#a5b6ca}
+html[data-theme="dark"] .auth-card .auth-verification p[data-state="error"],html[data-theme="dark"] .auth-card .auth-verification p[data-state="unconfigured"]{color:#f1b1a6}
+html[data-theme="dark"] .auth-card .auth-wait{background:#332c20;color:#ebd2a1;border-color:#6e5937}
+html[data-theme="dark"] .auth-verification-retry{color:#b9d5f3;border-color:#586b80}

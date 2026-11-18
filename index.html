@@ -2,92 +2,99 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com; script-src-attr 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="same-origin">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f3f5f7">
   <meta name="description" content="Portal kerja GA Services untuk data karyawan, tracking dokumen, serah terima perangkat, serta Link Kerja.">
   <title>Tracking Dokumen · GA Services</title>
   <link rel="icon" href="data:,">
-  <script src="tema.js?v=15"></script>
-  <link rel="stylesheet" href="portal.css?v=15">
-  <link rel="stylesheet" href="devices.css?v=15">
-  <link rel="stylesheet" href="employees.css?v=15">
-  <link rel="stylesheet" href="skc.css?v=15">
-  <link rel="stylesheet" href="akses.css?v=15">
-  <link rel="stylesheet" href="mess-admin.css?v=15">
-  <link rel="stylesheet" href="profil.css?v=15">
-  <link rel="stylesheet" href="portal-polish.css?v=15">
-  <link rel="stylesheet" href="paginasi.css?v=15">
+  <script src="tema.js?v=15" integrity="sha384-7QMv3iWdjOQ0WqS8sxdBp+vMFPEDp7Y2MU2dO/LLqUWWn/k/fsHjoTeYZqBDkiyY" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="portal.css?v=15" integrity="sha384-V9BkIsQFSsPEDE+ASHmejQ6U5FPUpNMnU40ig9wGLuLh+R0z5WO/m+4EiwJuiMhE" crossorigin="anonymous">
+  <link rel="stylesheet" href="devices.css?v=15" integrity="sha384-HpiHtu+UfNvLcqOkQxDt8t7GzgixA6jgUC6UIxoA4G4F2CqGFwvtSBGg9rr9BdWz" crossorigin="anonymous">
+  <link rel="stylesheet" href="employees.css?v=15" integrity="sha384-6Ue78RL+Da2UlKzv64oKWOaDZZ1m70bLEUZ6EQa0IkUMK9MzMOxsGzMLvWHvJHL+" crossorigin="anonymous">
+  <link rel="stylesheet" href="skc.css?v=15" integrity="sha384-B3cHRN2nQgH7VmDQ99DpwMT5Fa0ThSZ75GDB6QEBtpBZ9DWr3/3PBS5CuFeMmG9l" crossorigin="anonymous">
+  <link rel="stylesheet" href="akses.css?v=15" integrity="sha384-dwOwBghRSF/kZkt3fVR+zk5vX+Ic+wQTmVLpm9aTdBTpuxYbXcfC7wkN+vp9XtRH" crossorigin="anonymous">
+  <link rel="stylesheet" href="mess-admin.css?v=15" integrity="sha384-CW0jjLoO4qovjjK4ZeNNLqgL3q/LMslvhaFdNWKV9NciViK3PhOHyTtG6v/8mp5O" crossorigin="anonymous">
+  <link rel="stylesheet" href="profil.css?v=15" integrity="sha384-k9vWk7t4Z/UtsR/nuYHyMYfu6ta+oHdVZ0Ob6lnDwuIPtcPyOcyUq7tPV8HGQdxh" crossorigin="anonymous">
+  <link rel="stylesheet" href="portal-polish.css?v=15" integrity="sha384-R1vWJG5T6JtrIewIfEJ6wPE0+33E7tp13iKYh/AgnkTBphKqgwUL6XNEQ9O3foQ7" crossorigin="anonymous">
+  <link rel="stylesheet" href="paginasi.css?v=15" integrity="sha384-ODCQAzYei2wfdH6TNh2Dcl8HYJpZtSXzAnDOCgDH6Y+gZDvwDefXbjYGUQrv0V5l" crossorigin="anonymous">
+  <link rel="stylesheet" href="login35_6.css?v=35.6" integrity="sha384-C3ymZld84ePV/V4vkhAMVbbwfMhYGlTe2dTPFk88ikRANklq7PSubaW6BedKaNEF" crossorigin="anonymous">
   <script defer src="konfigurasi.js?v=15"></script>
-  <script defer src="form-guard.js?v=33"></script>
-  <script defer src="akses.js?v=35.3"></script>
-  <script defer src="preferensi.js?v=15"></script>
-  <script defer src="link-store.js?v=15"></script>
-  <script defer src="office-store.js?v=33"></script>
-  <script defer src="tracking-store.js?v=33"></script>
-  <script defer src="foto-karyawan.js?v=15"></script>
-  <script defer src="employee-store.js?v=15"></script>
-  <script defer src="jabatan.js?v=15"></script>
-  <script defer src="device-store.js?v=15"></script>
-  <script defer src="skc-store.js?v=34"></script>
-  <script defer src="tracking-pdf.js?v=21"></script>
-  <script defer src="paginasi.js?v=34"></script>
-  <script defer src="portal.js?v=34"></script>
-  <script defer src="data-admin.js?v=15"></script>
-  <script defer src="employees.js?v=35"></script>
-  <script defer src="devices.js?v=15"></script>
-  <script defer src="skc.js?v=33"></script>
-  <script defer src="mess-import.js?v=16"></script>
-  <script defer src="mess-admin.js?v=34"></script>
-  <script defer src="profil-store.js?v=34"></script>
-  <script defer src="profil.js?v=34"></script>
-  <script defer src="office.js?v=33"></script>
-  <script defer src="tamu-kartu.js?v=27"></script>
-  <script defer src="agenda.js?v=35"></script>
-  <script defer src="cuti-store.js?v=15"></script>
-  <script defer src="cuti.js?v=15"></script>
-  <script defer src="ekspor.js?v=34"></script>
-  <link rel="stylesheet" href="pembaruan08.css?v=15">
-  <link rel="stylesheet" href="cuti.css?v=15">
-  <link rel="stylesheet" href="pembaruan14.css?v=15">
-  <link rel="stylesheet" href="agenda.css?v=27">
-  <link rel="stylesheet" href="pembaruan15.css?v=15">
-  <link rel="stylesheet" href="tema.css?v=15">
-  <link rel="stylesheet" href="stok.css?v=20">
-  <script defer src="stok-domain.js?v=20"></script>
-  <script defer src="kiriman33.js?v=35.3"></script>
-  <script defer src="stok-store.js?v=34"></script>
-  <script defer src="crew34.js?v=34"></script>
-  <script defer src="stok.js?v=34"></script>
-  <link rel="stylesheet" href="akun-menu.css?v=26">
-  <script defer src="akun-menu.js?v=26"></script>
-  <link rel="stylesheet" href="tracking-input.css?v=29">
-  <script defer src="tracking-input-domain.js?v=29"></script>
-  <script defer src="tracking-input-store.js?v=29"></script>
-  <script defer src="tanggal-input.js?v=30"></script>
-  <script defer src="tracking-input.js?v=31"></script>
-  <script defer src="tracking-initial.js?v=31"></script>
-  <script defer src="tracking-sheet-domain.js?v=30"></script>
-  <script defer src="tracking-sheet-store.js?v=29"></script>
-  <script defer src="tracking-sheet.js?v=35.3"></script>
-  <link rel="stylesheet" href="tracking-sheet.css?v=29">
-  <link rel="stylesheet" href="pembaruan31.css?v=31">
-  <script defer src="skc-input-domain.js?v=33"></script>
-  <script defer src="skc-input-store.js?v=33"></script>
-  <script defer src="skc-input.js?v=33"></script>
-  <link rel="stylesheet" href="pembaruan33.css?v=33">
-  <link rel="stylesheet" href="pembaruan34.css?v=34">
-  <link rel="stylesheet" href="catatan35.css?v=35.3">
-  <link rel="stylesheet" href="tanggal-input.css?v=30">
-  <script defer src="akun-baru.js?v=34"></script>
-  <script defer src="catatan-editor35.js?v=35"></script>
-  <script defer src="catatan-revisi35.js?v=35.3"></script>
-  <script defer src="catatan35.js?v=35.3"></script>
+  <script defer src="login-konfigurasi.js?v=35.6"></script>
+  <script defer src="login35_6.js?v=35.6" integrity="sha384-IeLfxvveqVgeO4jchvxUzrWvMHik9TF3D9yrtSgDwdxNPlp2FtTJGsBb6i4bMJHM" crossorigin="anonymous"></script>
+  <script defer src="form-guard.js?v=33" integrity="sha384-HIo71K9RU+CgLxqLmOSwSkP6YJ4XFpMYNDAXiiuLYvkpPpWGNnHxeTlnes2t+xrP" crossorigin="anonymous"></script>
+  <script defer src="akses.js?v=35.6" integrity="sha384-m7f8xMEAGZl35/Sov8fZfktXBNQAdatcnTa5C/REb7GoasiZQN4vNUnvaT01SIY9" crossorigin="anonymous"></script>
+  <script defer src="preferensi.js?v=15" integrity="sha384-NEsPimgGutj/6izArpxlSJc/75eOumjvBaO2yw/H2drYincwr5EtilwPkfunzMj0" crossorigin="anonymous"></script>
+  <script defer src="link-store.js?v=15" integrity="sha384-2OcmRmGHEToQyQM5HSsD47izjWglk483sxq6lJZsAQx+NT3rT63Ur2q3wUkLfRuf" crossorigin="anonymous"></script>
+  <script defer src="office-store.js?v=33" integrity="sha384-y7D/0H771ZAUH5HRDQn67zlbMeEAUgSR60OXyahE7mCqj2eqYT9gqfdrWCf/XoCQ" crossorigin="anonymous"></script>
+  <script defer src="tracking-store.js?v=33" integrity="sha384-SgEv5/w21Umgg0CCR6CnBkHhemhh7inAIOLIviAzJuKDwwSuXOt9Y3CUFd+rFhWH" crossorigin="anonymous"></script>
+  <script defer src="foto-karyawan.js?v=35.5" integrity="sha384-0qa/g08CEtbOin5ucsaOaA5iWpTbQbuSifkZoVfDoxyjQx4stKHuj8Fe8S5fI78U" crossorigin="anonymous"></script>
+  <script defer src="employee-store.js?v=15" integrity="sha384-Xzz6PjFgP5c4IovDabuUzDWph1HDsC8JRxMauVyQJM0TqlVgJMsDTcwDZe4WxdNl" crossorigin="anonymous"></script>
+  <script defer src="jabatan.js?v=15" integrity="sha384-UN731pr0+e+CnDAy/6+BHv1Wsn2LqfVZwToTldBtBrW0uTHZHutIeBKwEjeG4F/8" crossorigin="anonymous"></script>
+  <script defer src="device-store.js?v=15" integrity="sha384-5ktaXYwV5bztTGoZb/M2ZnnKVekAF9zRuBuR8mkSvhLnGMHMYtcKmMEK4w2g6c6H" crossorigin="anonymous"></script>
+  <script defer src="skc-store.js?v=35.5" integrity="sha384-HeTBj0cx6SUqsrwxEYRrdxb3WDVd6HydWBb8AKtFivgGFh0FZESDYd2fPFUk1vlt" crossorigin="anonymous"></script>
+  <script defer src="tracking-pdf.js?v=35.6.2" integrity="sha384-g+K7mMyWWKr1srFwqDPSBTIITH3kds13Zhmrj+WovcffoJg0uSZti0YnRpLBfMA8" crossorigin="anonymous"></script>
+  <script defer src="paginasi.js?v=34" integrity="sha384-BDvbRNb/aCq+bISWAQ9zuwvrhvM7tka7tsE+fhayzBMCGZ8Zosi5BPDeyw9EHx9w" crossorigin="anonymous"></script>
+  <script defer src="portal.js?v=35.5" integrity="sha384-Fvfd1ZbSl1nBglEzENPVLlRqe5nTnyWgzmssa/j9TB6PjsxsklDjKAcld5eYObSu" crossorigin="anonymous"></script>
+  <script defer src="data-admin.js?v=15" integrity="sha384-rlSHKu26SLnwFqHRI1TU44po4C8lQjzmYvl7XwxYUGqN1PpJ6Xss7eAqTlHIPZ+g" crossorigin="anonymous"></script>
+  <script defer src="employees.js?v=35" integrity="sha384-iCgh2JTYiW+NvkESotidMeuKZzQDPIVNVbVnZ24l3p1tzoCCbtT3lrZ5uoCO9Dky" crossorigin="anonymous"></script>
+  <script defer src="devices.js?v=35.5" integrity="sha384-vWu/RNWV44Mgl/H17CajV2kvbYH5Ux7t/4Shq55sUcLu69tC+aD7y0f3kmQOgsb3" crossorigin="anonymous"></script>
+  <script defer src="skc.js?v=35.5" integrity="sha384-k3vIvAQus63ckLheSnDmrMULxVlEweL1/E65+wbGbwGlOv+ojIN+00fvO5rGg3jO" crossorigin="anonymous"></script>
+  <script defer src="mess-import.js?v=16" integrity="sha384-EgC6NKBreOnLnMGhAtLUFh+0SzcUYfMvvtWE6bz9ecavz+x85XoWULjoF/M410kx" crossorigin="anonymous"></script>
+  <script defer src="mess-admin.js?v=35.5" integrity="sha384-lQhxkWp1YyQqR3pX5uyBxdXjbT8YOZagXCCEFkYR59svP3iFRMwfyLvpDwsTDxCX" crossorigin="anonymous"></script>
+  <script defer src="profil-store.js?v=34" integrity="sha384-0Pd/2XIHsYrgj2a10fEO29ctGiiiqWOtM2S2i4OLVLBqs3f8JwN2ugqNtkX+3dZ6" crossorigin="anonymous"></script>
+  <script defer src="profil.js?v=34" integrity="sha384-RdMP7G1S+X/U3pwUW38hP7bXXxhcA927CloGRN39U3melcD1CiRH7JIdv8y6JhDt" crossorigin="anonymous"></script>
+  <script defer src="office.js?v=33" integrity="sha384-DhLDPcUEhaCxlfXU2vgXie6smjQzQNVp8DiO0UCMJFryVtR9eCK9yupCBf7hvj/n" crossorigin="anonymous"></script>
+  <script defer src="tamu-kartu.js?v=27" integrity="sha384-r27CbU9KdhSFzaBuVNGfYDfi/EISdlpB0mYma4K/KMM7/Gug2gtnKR/+stKAKHDJ" crossorigin="anonymous"></script>
+  <script defer src="agenda.js?v=35" integrity="sha384-Bwlg7iv2ZNQgnRPWG7kkyn46b8F+KdZ92zP1aHbZBIaWAcglfCT99rPGwrtx59XB" crossorigin="anonymous"></script>
+  <script defer src="cuti-store.js?v=15" integrity="sha384-SZ2/p2N8CyIPzmJeFfWHRNLawxh5wPSu02UPgk0WcWoXQakThzUuLV/oxCv3m0Br" crossorigin="anonymous"></script>
+  <script defer src="cuti.js?v=15" integrity="sha384-bFMFPJrupYlX3+Q5fWzWdDYU0OHOVfWxpkb/l1TNjIgtRcmjkKbxjDQl7CsGr104" crossorigin="anonymous"></script>
+  <script defer src="ekspor.js?v=35.5" integrity="sha384-xDiADmtP8ixgdJZiWBE7X9tk74uBb4JKtPlzwjULco4hOsWK2oJ9PvOBt59OZkgf" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="pembaruan08.css?v=15" integrity="sha384-k7pxpwKbwa4pp9kyfSyjliwpLLXfXckO8QbcHBvNRri7rr4RrIVhhukbepjsb1mx" crossorigin="anonymous">
+  <link rel="stylesheet" href="cuti.css?v=15" integrity="sha384-tYCbd186MkpvDhq5+zcbzWZ8Iedtq11cQ8Gon/UpZxABsm6AJCdesJtcApt0Ze2a" crossorigin="anonymous">
+  <link rel="stylesheet" href="pembaruan14.css?v=15" integrity="sha384-kZoyjhRmqbEdARtcnGPJp4PQPUGCSt72w60Q26cb4weGSTusVYf87EVavmYarUPZ" crossorigin="anonymous">
+  <link rel="stylesheet" href="agenda.css?v=27" integrity="sha384-GXzuBdDw844Qj/18iCj7DoUcqcqsszNjTDZpH75/AlsoB5wsaloTqs5p0B6gjFN8" crossorigin="anonymous">
+  <link rel="stylesheet" href="pembaruan15.css?v=15" integrity="sha384-jDV5VBWBYIhnkjne/7h66w3BuVB9T7aDUEo3okvFL4nDImlSBKYlutVJUJJAshRJ" crossorigin="anonymous">
+  <link rel="stylesheet" href="tema.css?v=15" integrity="sha384-lJ4gKzwM9ObzBmDur29TGn7hNiqN0Wtc0b+PPMzaPVz5EiPv+W+hSB6rJ0k4xlZL" crossorigin="anonymous">
+  <link rel="stylesheet" href="stok.css?v=20" integrity="sha384-FurwTwSWQl6i/S5ARW2Lt1hk66vq7Ai1lfsU8an0pIm6BxZiDxgLHFJvFKz+5Mo8" crossorigin="anonymous">
+  <script defer src="stok-domain.js?v=20" integrity="sha384-hyoHC+lyqyfFM5RY3m1AlRJLNlNw3yHs6jJi7b1r1KVXqpQ2lULxzE/etFnGq4AK" crossorigin="anonymous"></script>
+  <script defer src="kiriman33.js?v=35.3" integrity="sha384-TPhN9xKCDM1A+ajFuwIGQHwKSZk91u9L4Pa54rGaLVWOp/QW7MYiOnf3iE9GLzkU" crossorigin="anonymous"></script>
+  <script defer src="stok-store.js?v=34" integrity="sha384-vqSuuvFKF5bqZqk01e4UjuD/w85vwEmaiFL9pNNHKj7ElVfKqZHx47ec4psnZWKp" crossorigin="anonymous"></script>
+  <script defer src="crew34.js?v=34" integrity="sha384-/PeIm7EonLwO/4AgEBpHNt6wkB/C/blqaXexsNdO+OjgzC/GCBjrSFl9HgDMVmzk" crossorigin="anonymous"></script>
+  <script defer src="stok.js?v=35.5" integrity="sha384-owlJe20MM8zyj8A97FWk4uJtM5y/OBdTQdZCvWyrT0QvxECGk98FGEhcwEFkXZzf" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="akun-menu.css?v=26" integrity="sha384-EgWdpaqAUKN2IK1k2ni6q4n4BN8GT9M+Luw9Kj71fuHgF8fUdxL9S61VSe4VIq+2" crossorigin="anonymous">
+  <script defer src="akun-menu.js?v=26" integrity="sha384-ncL9c97bZ6v/K7zgheH8V3sdhqvAgqoxFKBj/5u2V1+cO9noBFeRaUZpb2rWL9Fq" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="tracking-input.css?v=29" integrity="sha384-ttUC4l0UDRS+qUmuhUZwvPT8eoDa+CMtuqJ71XtenPZHK7KZwsLdeGVAfSSHcKfl" crossorigin="anonymous">
+  <script defer src="tracking-input-domain.js?v=29" integrity="sha384-Nom6KBmyq+gE+iXJM4FdX41xlx1a3GiqLT0Gzi+AfmgNa+t587cMo2fAixP4HaGU" crossorigin="anonymous"></script>
+  <script defer src="tracking-input-store.js?v=29" integrity="sha384-ijA1hUywd7tDoneHnmMGc4JSYJICEtN39/t2+JnjESZ/EiLWRy6RerOkSJrbK56B" crossorigin="anonymous"></script>
+  <script defer src="tanggal-input.js?v=35.4" integrity="sha384-kF/0WUVO8A5WXkThC6R4VTA+IvRMAkn39z8Zd3KMQPTgnRuE8hDCeMUoCYGXxrSu" crossorigin="anonymous"></script>
+  <script defer src="tracking-input.js?v=31" integrity="sha384-2u4qY4bbdq6XXHplCa0uBuxc346WKjtN0/d/xh3Rm5gRpb2nXzRsLJ3R7bevbA6q" crossorigin="anonymous"></script>
+  <script defer src="tracking-initial.js?v=35.5" integrity="sha384-9aeDir9NbTplFp6FG2AmweVo6el+AeiSnOoUMC1KH1yHszGbu182GxIIYapd8ooH" crossorigin="anonymous"></script>
+  <script defer src="tracking-sheet-domain.js?v=35.4" integrity="sha384-1HFvXIRiu2BYWraY/crpWC1ze0Yv4obTNfOdItBhzO1eYfFLWpTtRyUq7OZSVovx" crossorigin="anonymous"></script>
+  <script defer src="tracking-sheet-store.js?v=29" integrity="sha384-jPrqEB57EdT5jkpWe4jAs1waTz8jzafYSs7LsL+D5yBQ7rC2IvrxYb27Yct5dTDY" crossorigin="anonymous"></script>
+  <script defer src="tracking-sheet.js?v=35.4" integrity="sha384-gDgIw0wan44S0frtx0b9tzsqXq45H766bDHKSVFrgEzp5kHYjQyjv52JdFzyDfbG" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="tracking-sheet.css?v=29" integrity="sha384-lc6iOc06yLHgVDo+BIYY3b1RBHVb16MmGFqMY8waC+WqnLbnF2711PZuyYx9H13b" crossorigin="anonymous">
+  <link rel="stylesheet" href="pembaruan31.css?v=31" integrity="sha384-x+brMhroBBw2cdY/EpKw7mPD6Jvz4fWSFYHevcC65bZOuxAFMgYMJC24wbheFS6b" crossorigin="anonymous">
+  <script defer src="skc-input-domain.js?v=33" integrity="sha384-eDuwsBNt5XgE7bcq5Hp/4QIErkMMTM4wv/C1tJ1tFkGKkbmsxOKC9giUgdnOalkh" crossorigin="anonymous"></script>
+  <script defer src="skc-input-store.js?v=33" integrity="sha384-uG32+RZtZwoiOGZ9ZI3F2VSgslWnxtW/raCeHoUIfaoF7IrYFKTnChCaAON/PAo1" crossorigin="anonymous"></script>
+  <script defer src="skc-input.js?v=33" integrity="sha384-EBOOVKzgf9RbXG0bv/2hRqqS7btI+c7pq8YboadE8QLPRT7XiH9/zOUCS0lL32o3" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="pembaruan33.css?v=33" integrity="sha384-N1reJWnPBjevPEteAyD3x6d6FLQ8YJLvi5S560Sl7/Be/mWM2L6K8QAdNQXYL6Zq" crossorigin="anonymous">
+  <link rel="stylesheet" href="pembaruan34.css?v=34" integrity="sha384-T+uNeUaFELy5OrnHxr1k4tswDKMZ512XXkYEJjbP3mTd4c9jO5M5o4/HOAX5D82H" crossorigin="anonymous">
+  <link rel="stylesheet" href="catatan35.css?v=35.3" integrity="sha384-SNQ3SsspuAZxB1Gf8FvkE9+xg/CdGJM712Hsr6m/Sf4ulmuMLNue3GbR2wJ0wQae" crossorigin="anonymous">
+  <link rel="stylesheet" href="tanggal-input.css?v=30" integrity="sha384-d1hf9IRt6xnqdlYkAGJEsAOrdoU15tIWXA05vMWAc6Yxr0xG314qy3GiMEcjaPjX" crossorigin="anonymous">
+  <script defer src="akun-baru.js?v=34" integrity="sha384-gSfAa5VX+EJqrnPmMuAPZsxp2XlPabavju9SaY5jnxEWQ/uQt8i3kCjqZ0B1s9J2" crossorigin="anonymous"></script>
+  <script defer src="catatan-editor35.js?v=35" integrity="sha384-PBPFWTT8E948eue57VN2a2H4TBGHK/YFzZNl3OOElStdDc2rACpMUbhJbnYaInLk" crossorigin="anonymous"></script>
+  <script defer src="catatan-revisi35.js?v=35.3" integrity="sha384-9EP8I5U7Mhi3aFpQIqL4JCc4afrnczytZgEDaxgoHNzx+6r7+dUqhEtSlhLffWy4" crossorigin="anonymous"></script>
+  <script defer src="catatan35.js?v=35.3" integrity="sha384-H+I48Ehr2wzPmHYs2ljL/n2h+OXhPIkUmip2BvU7Qcjxx5fbQISEee+ZkqCjuS8m" crossorigin="anonymous"></script>
 </head>
 <body data-area="portal">
 <section class="auth-screen" id="auth-screen" aria-labelledby="auth-title"><div class="auth-card">
 <img class="auth-logo" src="ga-logo.jpg" width="220" height="64" alt="General Affair Services"><span class="auth-kicker">CAMP &amp; FACILITY</span><h1 id="auth-title">Masuk ke Portal GA</h1><p id="auth-description">Gunakan akun kerja Anda untuk melanjutkan.</p>
 <p class="auth-error" id="auth-error" role="alert" hidden></p>
-<form id="login-form"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"><label for="login-password">Password</label><div class="auth-password"><input id="login-password" type="password" required autocomplete="current-password"><button id="auth-password-toggle" type="button">Lihat</button></div><p class="auth-password-help">Lupa kata sandi? Hubungi Administrator.</p><button id="login-submit" type="submit" class="auth-submit" disabled>Masuk</button></form>
+<form id="login-form"><label for="login-email">Email</label><input id="login-email" type="email" required autocomplete="username"><label for="login-password">Password</label><div class="auth-password"><input id="login-password" type="password" required autocomplete="current-password"><button id="auth-password-toggle" type="button">Lihat</button></div><p class="auth-password-help">Lupa kata sandi? Hubungi Administrator.</p>
+<section id="auth-verification" class="auth-verification" aria-label="Verifikasi keamanan" hidden><p id="auth-verification-status" role="status" aria-live="polite"></p><div id="auth-turnstile"></div><button id="auth-verification-retry" class="auth-verification-retry" type="button" hidden>Ulangi verifikasi</button></section>
+<p id="auth-wait" class="auth-wait" role="status" aria-live="polite" aria-atomic="true" hidden></p><button id="login-submit" type="submit" class="auth-submit" disabled>Masuk</button></form>
 <div id="auth-setup" class="auth-setup" hidden><p>Jalankan SQL pemasangan, lalu isi URL proyek dan publishable key pada <strong>konfigurasi.js</strong>.</p></div>
 <button id="auth-preview" type="button" class="auth-preview" hidden>Lihat tampilan web</button><button id="auth-reset" type="button" class="auth-reset" data-logout hidden>Keluar / ganti akun</button>
 </div></section>
@@ -206,7 +213,7 @@
       <section class="tracking-page cuti-page" id="cuti-page" hidden></section>
       <section class="tracking-page stok-page" id="stok-page" hidden aria-label="Stok Barang dan Opname"></section>
       <section class="tracking-page" id="profile-page" aria-label="Profil dan Pengaturan" hidden></section>
-      <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services" src="link-kerja.html?v=34" loading="lazy"></iframe></section>
+      <section id="links-page" class="links-page" aria-label="Link Kerja" hidden><iframe id="links-frame" title="Link Kerja GA Services" src="link-kerja.html?v=35.5" loading="lazy"></iframe></section>
     </main>
   </div>
 
@@ -279,7 +286,7 @@
   <dialog class="form-dialog movement-dialog" id="movement-dialog" aria-labelledby="movement-title">
     <div class="dialog-heading"><div><p class="dialog-kicker">PERPINDAHAN DOKUMEN</p><h2 id="movement-title">Catat perpindahan</h2></div><button type="button" class="icon-button" data-close="movement-dialog" aria-label="Tutup formulir perpindahan"><span data-icon="close"></span></button></div>
     <form id="movement-form"><div class="form-body"><p class="actor-line">Petugas pencatat <strong data-current-user></strong></p><div class="selected-document"><span data-icon="file"></span><div><strong id="movement-doc-name"></strong><small id="movement-doc-id"></small></div></div><div class="form-grid">
-      <div class="field"><label for="move-date">Tanggal perpindahan <span class="required">*</span></label><input type="date" id="move-date" name="tanggalPerpindahan" required></div>
+      <div class="field"><label for="move-date">Tanggal perpindahan <span class="required">*</span></label><input type="text" id="move-date" name="tanggalPerpindahan" placeholder="DD/MM/YYYY" aria-label="Tanggal perpindahan" required></div>
       <div class="field"><label for="move-from">Dicatat oleh <span class="required">*</span></label><input id="move-from" name="dari" readonly data-actor-input required maxlength="140"></div>
       <div class="field span-two"><label for="move-to">Diserahkan kepada <span class="required">*</span></label><input id="move-to" name="kepada" required maxlength="140" autocomplete="off"></div>
       <div class="field span-two"><label for="move-status">Status dokumen <span class="required">*</span></label><select id="move-status" name="status" required><option value="">Pilih status</option></select></div>

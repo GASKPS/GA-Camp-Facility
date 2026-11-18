@@ -29,7 +29,19 @@
   document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
   const $ = id => document.getElementById(id);
   const D = window.TrackingDomain, repository = window.TrackingStore;
-  let accessKey='', documents = [], selectedId = null, tab = 'active', toastTimer, editingDocument = null, movementRevision = null;
+  let accessKey='', documents = [], selectedId = null, tab = 'active', toastTimer, editingDocument = null, movementTarget = null;
+  let detailRequest=0, dialogRequest=0, documentWrite=0, movementWrite=0;
+  const writing=new Map();
+  function setWriting(id,locked){
+    const dialog=$(id);
+    if(locked&&!writing.has(id))writing.set(id,[...dialog.querySelectorAll('input,textarea,select,button')].map(el=>({el,disabled:el.disabled})));
+    const controls=writing.get(id)||[];
+    controls.forEach(({el,disabled})=>{el.disabled=locked||disabled;window.TanggalInput?.sync(el);});
+    if(!locked)writing.delete(id);
+    dialog.setAttribute('aria-busy',String(locked));
+  }
+  const contextKey=()=>{const p=window.Akses.profile;return p?[p.id,p.peran,p.office_id,p.aktif,p.akses_portal].join('|'):'';};
+  const currentContext=key=>!!key&&key===contextKey()&&location.hash==='#tracking';
   let exportingPdf = false, documentPage = 1, historyPage = 1, detailDocument = null, snapshot={total:0,ringkasan:{}}, listRequest=0, filterTimer, historyRequest=0;
   const pages = window.Paginasi;
   const e = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -48,14 +60,15 @@
   }
   function formError(id, message) { $(id).textContent = message; $(id).hidden = !message; }
   function openDialog(id) { if (!$(id).open) $(id).showModal(); }
-  function closeDialog(id) { $(id).close(); }
-  window.PortalUI = Object.freeze({ icon, escape: e, dateText, showToast, formError, openDialog, closeDialog });
+  function closeDialog(id) { if(!writing.has(id))$(id).close(); }
+  window.PortalUI = Object.freeze({ icon, escape: e, dateText, showToast, formError, openDialog, closeDialog, setDialogBusy:setWriting });
   document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => closeDialog(button.dataset.close)));
   document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
+    if (event.target !== dialog || writing.has(dialog.id)) return;
     const r = dialog.getBoundingClientRect();
     if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close();
   }));
+  document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('cancel',event=>{if(writing.has(dialog.id)){event.preventDefault();event.stopImmediatePropagation();}},true));
   function toggleMenu(open) {
     const sidebar = $('sidebar');
     sidebar.classList.toggle('open', open); $('nav-scrim').hidden = !open;
@@ -194,23 +207,29 @@
   function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; $('filter-office').value=window.Akses.administrator()?'':(window.Akses.profile?.office_id||''); $('filter-from').value=''; $('filter-to').value=''; refresh().catch(error=>showToast(error.message)); }
   async function newDocument() {
     if(!Akses.canWrite()) return showToast('Masuk dengan akun admin untuk menambah dokumen.');
-    const inputUser=Akses.profile?.id;
+    const context=contextKey(),seq=++dialogRequest;
     await window.TrackingInputStore?.load().catch(()=>{});
-    if(!Akses.canWrite()||Akses.profile?.id!==inputUser)return;
+    if(!currentContext(context)||seq!==dialogRequest||!Akses.canWrite())return;
     if(window.TrackingInputStore?.pending||window.TrackingInputUI?.mode==='excel')return window.TrackingInputUI.open();
     editingDocument = null;
     $('document-form').reset(); $('doc-date').value = D.today(); $('doc-date').max = '';
     $('document-form-kicker').textContent = 'DOKUMEN BARU'; $('document-dialog-title').textContent = 'Tambah dokumen'; $('document-save').textContent = 'Simpan Dokumen';
     await window.OfficeUI.documentOffice();
+    if(!currentContext(context)||seq!==dialogRequest||!Akses.canWrite())return;
     if(!Akses.administrator()&&!Akses.profile?.office_id)return showToast('Office akun belum ditetapkan. Hubungi Administrator.');
     updateOtherType();window.TrackingInitialUI?.configure(false); formError('document-error', ''); openDialog('document-dialog'); $('doc-name').focus();
   }
   async function editDocument() {
-    const doc = await repository.get(selectedId), form = $('document-form'); form.reset();
+    if(!Akses.canWrite()||!selectedId)return;
+    const context=contextKey(),seq=++dialogRequest,id=selectedId;
+    const doc = await repository.get(id), form = $('document-form');
+    if(!currentContext(context)||seq!==dialogRequest||selectedId!==id||!Akses.canWrite())return;
+    form.reset();
     editingDocument = { id: doc.id, revision: doc.revision };
     ['namaDokumen','tanggalMasuk','jenisDokumen','nomorDokumen','bu','noteDokumen'].forEach(field => { form.elements.namedItem(field).value = doc[field] || ''; });
     await window.OfficeUI.documentOffice(doc.officeId);
-    updateOtherType(); $('doc-other-type').value = doc.jenisDokumenLainnya || ''; $('doc-date').max = doc.tanggalPerpindahanPertama || '';
+    if(!currentContext(context)||seq!==dialogRequest||selectedId!==id||!Akses.canWrite())return;
+    updateOtherType(); $('doc-other-type').value = doc.jenisDokumenLainnya || ''; $('doc-date').max = '';
     $('document-form-kicker').textContent = doc.kode; $('document-dialog-title').textContent = 'Edit dokumen'; $('document-save').textContent = 'Simpan Perubahan';
     window.TrackingInitialUI?.configure(true);formError('document-error', ''); openDialog('document-dialog'); $('doc-name').focus();
   }
@@ -229,16 +248,20 @@
   });
   $('document-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = form.querySelector('[type=submit]');
-    if (!form.reportValidity() || button.disabled) return;
+    if (!Akses.canWrite() || !form.reportValidity() || button.disabled) return;
+    const context=contextKey(),seq=++documentWrite,detailSeq=detailRequest;
+    const editing = editingDocument, data = Object.fromEntries(new FormData(form));
+    setWriting('document-dialog',true);
     button.disabled = true;
     try {
-      const editing = editingDocument, data = Object.fromEntries(new FormData(form));
-      const doc = editing ? await repository.update(editing.id, { ...data, expectedRevision: editing.revision }) : window.TrackingInitialUI?.hasInitial()?await window.TrackingInitialUI.save(data):await repository.create(data);
-      window.FormGuard?.clean(form); closeDialog('document-dialog');document.dispatchEvent(new CustomEvent('tracking:document-changed')); await refresh();
-      if (editing) { renderDetail(doc); $('document-edit-success').hidden = false; }
+      const doc = editing ? await repository.update(editing.id, { ...data, expectedRevision: editing.revision }) : await window.TrackingInitialUI.save(data);
+      if(!currentContext(context)||seq!==documentWrite)return;
+      setWriting('document-dialog',false);window.FormGuard?.clean(form); closeDialog('document-dialog');document.dispatchEvent(new CustomEvent('tracking:document-changed')); await refresh();
+      if(!currentContext(context)||seq!==documentWrite)return;
+      if (editing) { if(selectedId===editing.id&&detailSeq===detailRequest){renderDetail(doc); $('document-edit-success').hidden = false;} }
       else { resetFilters(); selectTab(D.isFinal(doc.statusTerakhir)?'done':'active'); showToast('Dokumen berhasil disimpan.'); }
-    } catch (error) { formError('document-error', error.message); }
-    finally { button.disabled = false;window.TrackingInitialUI?.sync(); }
+    } catch (error) { if(currentContext(context)&&seq===documentWrite)formError('document-error', error.message); }
+    finally { if(seq===documentWrite){setWriting('document-dialog',false);button.disabled = false;window.TrackingInitialUI?.sync();} }
   });
   function renderDetail(doc) {
     detailDocument = doc; historyPage = 1;historyRequest++;
@@ -261,30 +284,52 @@
     $('history').innerHTML = doc.history.length ? `<ol class="timeline">${doc.history.map(event => `<li class="history-event"><div class="event-heading"><strong>${event.notePerpindahan==='Posisi saat mulai dicatat.'?'Posisi saat mulai dicatat':'Perpindahan dokumen'}</strong><time datetime="${e(event.tanggalPerpindahan)}">${e(dateText(event.tanggalPerpindahan))}</time></div><div class="event-route">${event.notePerpindahan==='Posisi saat mulai dicatat.'?'':'<span>'+e(event.posisiSebelum || event.dari)+'</span>'+icon('arrow')}<span>${e(event.kepada)}</span></div>${status(event.status)}<small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.notePerpindahan&&event.notePerpindahan!=='Posisi saat mulai dicatat.' ? `<p class="event-note">${e(event.notePerpindahan)}</p>` : ''}</li>`).join('')}</ol>` : '<p class="history-empty">Dokumen baru diterima. Belum ada perpindahan yang dicatat.</p>';
     pages.render($('history-pagination'), page, async next => { const id=selectedId,seq=++historyRequest;try{const h=await repository.historyPage(id,next);if(seq!==historyRequest||selectedId!==id)return;detailDocument={...detailDocument,...h};historyPage=h.historyPage;renderHistory();$('history').scrollIntoView({block:'start'});}catch(error){showToast(error.message);} });
   }
-  async function showDetail(id) { const doc = await repository.get(id); selectedId = id; renderDetail(doc); openDialog('detail-dialog'); }
+  async function showDetail(id) {
+    const context=contextKey(),seq=++detailRequest;dialogRequest++;
+    if(!currentContext(context))return;
+    const doc=await repository.get(id);
+    if(seq!==detailRequest||!currentContext(context))return;
+    selectedId=id;renderDetail(doc);openDialog('detail-dialog');
+  }
   $('new-movement').addEventListener('click', async () => {
+    if(!Akses.canWrite()||!selectedId)return;
+    const context=contextKey(),seq=++dialogRequest,id=selectedId;
     try {
-      const doc = await repository.get(selectedId); $('movement-form').reset(); formError('movement-error', '');
-      movementRevision = doc.revision;
+      const doc = await repository.get(id);
+      if(!currentContext(context)||seq!==dialogRequest||selectedId!==id||!Akses.canWrite())return;
+      if(D.isFinal(doc.statusTerakhir))return showToast('Dokumen sudah selesai. Muat kembali detailnya.');
+      $('movement-form').reset();formError('movement-error', '');
+      movementTarget = {id:doc.id,revision:doc.revision,context};
       $('movement-doc-name').textContent = doc.namaDokumen; $('movement-doc-id').textContent = doc.kode;
-      $('move-date').min = doc.perpindahanTerakhir || doc.tanggalMasuk;
-      $('move-date').value = D.today() < $('move-date').min ? $('move-date').min : D.today();
+      $('move-date').removeAttribute('min');$('move-date').removeAttribute('max');
+      window.TanggalInput.mount($('move-date'));
+      $('move-date').value = window.TanggalInput.format(D.today());$('move-date').setCustomValidity('');$('move-date').setAttribute('aria-invalid','false');
       $('move-from').value = Akses.profile?.nama || '';
       openDialog('movement-dialog'); $('move-date').focus();
-    } catch (error) { showToast(error.message); }
+    } catch (error) { if(currentContext(context)&&seq===dialogRequest)showToast(error.message); }
   });
   $('movement-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = form.querySelector('[type=submit]');
-    if (!form.reportValidity() || button.disabled) return;
+    const target=movementTarget;
+    if(!target||!currentContext(target.context)||!Akses.canWrite()||button.disabled)return;
+    const date=window.TanggalInput.parse($('move-date').value);
+    $('move-date').setCustomValidity(date?'':'Isi tanggal yang valid dengan format DD/MM/YYYY.');
+    if (!form.reportValidity()) return;
+    const seq=++movementWrite;
+    const data={ ...Object.fromEntries(new FormData(form)),tanggalPerpindahan:date,expectedRevision:target.revision };
+    setWriting('movement-dialog',true);
     button.disabled = true;
     try {
-      const doc = await repository.move(selectedId, { ...Object.fromEntries(new FormData(form)), expectedRevision: movementRevision });
-      window.FormGuard?.clean(form); closeDialog('movement-dialog');document.dispatchEvent(new CustomEvent('tracking:document-changed')); await refresh(); renderDetail(doc);
-      if (D.isFinal(doc.statusTerakhir)) { resetFilters(); selectTab('done'); }
+      const doc = await repository.move(target.id,data);
+      if(!currentContext(target.context)||seq!==movementWrite)return;
+      setWriting('movement-dialog',false);window.FormGuard?.clean(form); closeDialog('movement-dialog');document.dispatchEvent(new CustomEvent('tracking:document-changed')); await refresh();
+      if(!currentContext(target.context)||seq!==movementWrite)return;
+      if(selectedId===target.id)renderDetail(doc);
+      if (selectedId===target.id&&D.isFinal(doc.statusTerakhir)) { resetFilters(); selectTab('done'); }
       // A toast outside a modal is not visible above the top layer. The updated
       // history is immediate feedback while the detail dialog remains open.
-    } catch (error) { formError('movement-error', error.message); }
-    finally { button.disabled = false; }
+    } catch (error) { if(currentContext(target.context)&&seq===movementWrite)formError('movement-error', error.message); }
+    finally { if(seq===movementWrite){setWriting('movement-dialog',false);button.disabled = false;} }
   });
   function updateDate() { $('today').dateTime = D.today(); $('today').textContent = dateText(D.today()); render(); }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) updateDate(); });
@@ -293,13 +338,16 @@
   document.addEventListener('akses:berubah',()=>{
     syncAgendaLabel();
     listRequest++;const p=window.Akses.profile,key=p?[p.id,p.peran,p.office_id,p.aktif,p.akses_portal].join('|'):'';
-    if(key!==accessKey){accessKey=key;documents=[];snapshot={total:0,ringkasan:{}};selectedId=null;detailDocument=null;editingDocument=null;historyRequest++;
+    if(key!==accessKey){accessKey=key;documents=[];snapshot={total:0,ringkasan:{}};selectedId=null;detailDocument=null;editingDocument=null;movementTarget=null;historyRequest++;detailRequest++;dialogRequest++;documentWrite++;movementWrite++;
+      setWriting('document-dialog',false);setWriting('movement-dialog',false);
+      for(const id of ['document-form','movement-form']){const form=$(id);form.reset();window.FormGuard?.clean(form);form.querySelector('[type=submit]').disabled=false;}
       for(const id of ['document-dialog','detail-dialog','movement-dialog'])if($(id).open)closeDialog(id);
-      $('detail-fields').replaceChildren();$('history').replaceChildren();$('detail-position').textContent='';render();}
+      $('detail-fields').replaceChildren();$('history').replaceChildren();['detail-position','detail-title','detail-id','detail-note','movement-doc-name','movement-doc-id'].forEach(id=>{$(id).textContent='';});render();}
     if(p)refresh().catch(error=>showToast(error.message));
   });
   document.addEventListener('data:muat-ulang',()=>refresh().catch(error=>showToast(error.message)));
   document.addEventListener('tracking:batch-saved',()=>{resetFilters();selectTab('active');});
   document.addEventListener('tracking:batch-moved',()=>refresh().catch(error=>showToast(error.message)));
+  window.addEventListener('hashchange',()=>{detailRequest++;dialogRequest++;});
   route(); fillStatuses(); updateDate(); refresh().catch(error => showToast(error.message));
 })();

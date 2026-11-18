@@ -53,7 +53,7 @@
   try{filtered=displayRows();pageState=g.Paginasi.range(filtered.length,page,20);page=pageState.page;visible=filtered.slice(pageState.start,pageState.end);}catch(err){filtered=[];visible=[];pageState=g.Paginasi.range(0);message(err.message,'error');}
   g.Paginasi.render($('ts-pagination'),pageState,next=>{page=next;render();});
   $('ts-rows').innerHTML=visible.map(renderRow).join('');
-  visible.forEach(doc=>{const row=values(doc);D.columns.forEach((col,number)=>{const input=$(cell(doc.id,number));input.value=row[col.key]||'';if(col.key==='tanggal')g.TanggalInput.mount(input,{min:()=>find(doc.id)?.perpindahanTerakhir||find(doc.id)?.tanggalMasuk||doc.perpindahanTerakhir||doc.tanggalMasuk,max:()=>T.today()});});updateRow(doc);});
+  visible.forEach(doc=>{const row=values(doc);D.columns.forEach((col,number)=>{const input=$(cell(doc.id,number));input.value=row[col.key]||'';if(col.key==='tanggal')g.TanggalInput.mount(input);});updateRow(doc);});
   $('ts-empty').hidden=!!visible.length;$('ts-empty').textContent=loading?'Memuat dokumen…':onlyChanged?'Belum ada baris yang diubah.':'Tidak ada dokumen aktif yang sesuai filter.';controls();mark();
  }
  function repaint(){visible.forEach(updateRow);controls();}

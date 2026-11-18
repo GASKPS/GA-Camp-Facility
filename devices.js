@@ -11,6 +11,20 @@
   document.querySelectorAll('[data-device-resource]').forEach(a => { a.href = resources[a.dataset.deviceResource]; });
   let devices = [], historyId = null, handoverId = null, handoverRevision = null, editingDevice = null, afterReturn = null;
   let historyPage = 1, historyDevice = null, historyRequest=0;
+  let listRequest=0,editRequest=0,transferRequest=0,deviceWrite=0,transferWrite=0,deviceBusy=false,transferBusy=false;
+  const identity=()=>{const p=window.Akses.profile;return p?[p.id,p.peran,p.office_id,p.aktif,p.akses_portal].join('|'):'';};
+  let accessKey=identity();
+  const readable=()=>!!window.Akses.profile?.aktif&&!!window.Akses.profile?.akses_portal&&window.Akses.profile.peran!=='crew';
+  const context=()=>identity()+'|'+location.hash;
+  const current=key=>!!identity()&&readable()&&key===context();
+  const busy=(id,locked)=>UI.setDialogBusy?.(id,locked);
+  function clearContext(){
+    listRequest++;editRequest++;transferRequest++;historyRequest++;deviceWrite++;transferWrite++;
+    devices=[];historyId=handoverId=handoverRevision=editingDevice=afterReturn=historyDevice=null;deviceBusy=transferBusy=false;
+    for(const id of ['device-dialog','handover-dialog','device-history-dialog']){busy(id,false);const dialog=$(id);dialog.querySelectorAll('form').forEach(form=>{form.reset();window.FormGuard?.clean(form);});if(dialog.open)closeDialog(id);}
+    for(const id of ['device-history-title','device-history-brand','device-history-holder','device-history-nik','device-history-condition','device-initial-holder','device-history-events','device-history-pagination','handover-title','handover-brand','handover-from-name','handover-from-nik','handover-from-condition'])$(id).replaceChildren();
+    renderDevices();
+  }
   const pages = window.Paginasi;
   const initialPicker = window.EmployeeUI.createPicker('device-holder', 'Pemegang awal');
   const recipientPicker = window.EmployeeUI.createPicker('handover-recipient', 'Penerima');
@@ -27,7 +41,7 @@
     const q = $('device-search').value.trim().toLocaleLowerCase('id-ID'), kind = $('device-kind-filter').value;
     const rows = devices.filter(d => (d.aktif===($('device-active-filter').value!=='nonaktif'))&&(!kind || d.jenis === kind) && (!q || [d.jenis,d.nomor,d.merek,d.pemegang.nik,d.pemegang.jabatan,personLabel(d.pemegang)].join(' ').toLocaleLowerCase('id-ID').includes(q)));
     $('device-summary').textContent = domain.TYPES.map(kind => `${devices.filter(d => d.jenis === kind).length} ${kind}`).join(' · ');
-    $('device-result-count').textContent = q || kind ? `${rows.length} dari ${devices.length} perangkat` : `${devices.length} perangkat`;
+    $('device-result-count').textContent = rows.length!==devices.length || q || kind ? `${rows.length} dari ${devices.length} perangkat` : `${rows.length} perangkat`;
     if (!rows.length) {
       $('device-results').innerHTML = q || kind
         ? empty('Perangkat tidak ditemukan', 'Coba kata kunci lain atau tampilkan semua perangkat.', '<button class="button button-secondary" type="button" data-device-action="reset">Reset pencarian</button>')
@@ -42,21 +56,24 @@
       <td data-label="Tindakan"><div class="device-row-actions"><button ${d.aktif ? '' : 'hidden'} class="button button-primary" type="button" data-device-action="transfer" data-device-id="${e(d.id)}" aria-label="Serah terima ${e(d.nomor)}">Serah Terima</button><button class="button button-secondary" type="button" data-device-action="history" data-device-id="${e(d.id)}" aria-label="Riwayat ${e(d.nomor)}">Riwayat</button><button ${d.aktif ? '' : 'hidden'} class="button button-secondary" type="button" data-device-action="edit" data-device-id="${e(d.id)}" aria-label="Edit perangkat ${e(d.nomor)}">Edit</button>${window.DataAdmin?.buttons('perangkat',d.id,d.revision,d.nomor,d.aktif)||''}</div></td>
     </tr>`).join('')}</tbody></table></div>`;
   }
-  async function refreshDevices() { if(location.hash!=='#ht-hp')return;devices = await repo.list(); renderDevices(); }
+  async function refreshDevices() { if(location.hash!=='#ht-hp')return;const key=context(),seq=++listRequest;if(!readable()){devices=[];renderDevices();return;}const values=await repo.list();if(seq!==listRequest||!current(key))return;devices=values;renderDevices(); }
   $('device-search').addEventListener('input', renderDevices);
   $('device-kind-filter').addEventListener('change', renderDevices);
   $('device-active-filter').addEventListener('change',renderDevices);
   function resetFilters() { $('device-search').value = ''; $('device-kind-filter').value = ''; renderDevices(); }
   async function newDevice() {
-    if (!window.Akses.superAdmin()) return;
+    if (!window.Akses.superAdmin()||deviceBusy) return;
+    const key=context(),seq=++editRequest;
     editingDevice = null; $('device-form').reset(); formError('device-form-error', '');
     $('device-form-kicker').textContent = 'PERANGKAT BARU'; $('device-form-title').textContent = 'Tambah perangkat'; $('device-save').textContent = 'Simpan Perangkat';
     $('device-holder-picker').hidden = false; initialPicker.setDisabled(false); $('device-edit-hint').hidden = true;
-    await initialPicker.load('admin'); openDialog('device-dialog'); $('device-kind').focus();
+    await initialPicker.load('admin');if(seq!==editRequest||!current(key)||!window.Akses.superAdmin())return;openDialog('device-dialog'); $('device-kind').focus();
   }
   async function editDevice(id) {
-    if (!window.Akses.superAdmin()) return;
-    const device = await repo.get(id), form = $('device-form'); form.reset();
+    if (!window.Akses.superAdmin()||deviceBusy) return;
+    const key=context(),seq=++editRequest,device = await repo.get(id);
+    if(seq!==editRequest||!current(key)||!window.Akses.superAdmin())return;
+    const form = $('device-form'); form.reset();
     editingDevice = { id, revision: device.revision };
     ['jenis','nomor','merek','kondisi'].forEach(field => { form.elements.namedItem(field).value = device[field]; });
     $('device-form-kicker').textContent = 'DATA PERANGKAT'; $('device-form-title').textContent = 'Edit perangkat'; $('device-save').textContent = 'Simpan Perubahan';
@@ -79,25 +96,33 @@
     $('device-initial-holder').textContent = personLabel(device.pemegangAwal) + (device.pemegangAwal.kind === 'employee' ? ` · ${personNik(device.pemegangAwal)}` : '');
     renderHistoryEvents();
   }
+  function proofLink(value,date){
+    if(!value)return '<span class="device-no-proof">Bukti tidak dilampirkan</span>';
+    try{return `<a class="device-proof-button" href="${e(domain.proofUrl(value))}" target="_blank" rel="noopener noreferrer" aria-label="Lihat bukti serah terima ${e(dateText(date))}">${icon('file')}Lihat Bukti <span aria-hidden="true">↗</span></a>`;}
+    catch{return '<span class="device-no-proof">Tautan bukti tidak valid</span>';}
+  }
   function renderHistoryEvents() {
     const device = historyDevice; if (!device) return;
     const page = pages.range(device.historyTotal||0, historyPage); historyPage = page.page;
     $('device-history-count').textContent = `${device.historyTotal||0} perpindahan`;
-    $('device-history-events').innerHTML = device.history.length ? `<ol class="timeline">${device.history.map(event => `<li class="history-event"><div class="event-heading"><strong>Serah terima ${event.urutan}</strong><time datetime="${e(event.tanggal)}">${e(dateText(event.tanggal))}</time></div><div class="device-event-route"><div>${e(personLabel(event.dari))}${event.dari.kind === 'employee' ? `<small>${e(personNik(event.dari))}</small>` : ''}</div>${icon('arrow')}<div>${e(personLabel(event.kepada))}${event.kepada.kind === 'employee' ? `<small>${e(personNik(event.kepada))}</small>` : ''}</div></div><small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.catatan ? `<p class="event-note">${e(event.catatan)}</p>` : ''}<div class="device-event-footer">${condition(event.kondisi)}${event.buktiUrl ? `<a class="device-proof-button" href="${e(domain.proofUrl(event.buktiUrl))}" target="_blank" rel="noopener noreferrer" aria-label="Lihat bukti serah terima ${e(dateText(event.tanggal))}">${icon('file')}Lihat Bukti <span aria-hidden="true">↗</span></a>` : '<span class="device-no-proof">Bukti tidak dilampirkan</span>'}</div></li>`).join('')}</ol>` : '<p class="history-empty">Belum ada serah terima. Perangkat masih pada pemegang awal yang dicatat.</p>';
-    pages.render($('device-history-pagination'), page, async next => { const id=historyId,seq=++historyRequest;try{const h=await repo.historyPage(id,next);if(historyId!==id||seq!==historyRequest)return;historyDevice={...historyDevice,...h};historyPage=h.historyPage;renderHistoryEvents();$('device-history-events').scrollIntoView({block:'start'});}catch(error){showToast(error.message);} });
+    $('device-history-events').innerHTML = device.history.length ? `<ol class="timeline">${device.history.map(event => `<li class="history-event"><div class="event-heading"><strong>Serah terima ${event.urutan}</strong><time datetime="${e(event.tanggal)}">${e(dateText(event.tanggal))}</time></div><div class="device-event-route"><div>${e(personLabel(event.dari))}${event.dari.kind === 'employee' ? `<small>${e(personNik(event.dari))}</small>` : ''}</div>${icon('arrow')}<div>${e(personLabel(event.kepada))}${event.kepada.kind === 'employee' ? `<small>${e(personNik(event.kepada))}</small>` : ''}</div></div><small class="event-actor">Dicatat oleh ${e(event.namaPetugas)} · ${e(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jayapura',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(event.dicatatPada)))} WIT</small>${event.catatan ? `<p class="event-note">${e(event.catatan)}</p>` : ''}<div class="device-event-footer">${condition(event.kondisi)}${proofLink(event.buktiUrl,event.tanggal)}</div></li>`).join('')}</ol>` : '<p class="history-empty">Belum ada serah terima. Perangkat masih pada pemegang awal yang dicatat.</p>';
+    pages.render($('device-history-pagination'), page, async next => { const id=historyId,seq=++historyRequest,key=context();try{const h=await repo.historyPage(id,next);if(historyId!==id||seq!==historyRequest||!current(key))return;historyDevice={...historyDevice,...h};historyPage=h.historyPage;renderHistoryEvents();$('device-history-events').scrollIntoView({block:'start'});}catch(error){if(current(key))showToast(error.message);} });
   }
   async function showHistory(id, success = false) {
-    const device = await repo.get(id); historyId = id; renderHistory(device); $('device-history-transfer').hidden=!device.aktif;
+    if(!readable())return;
+    const key=context(),seq=++historyRequest,device = await repo.get(id);if(seq!==historyRequest||!current(key))return;historyId = id; renderHistory(device); $('device-history-transfer').hidden=!device.aktif;
     $('device-history-success').hidden = !success;
     $('device-history-success').textContent = success ? 'Serah terima dicatat. Pemegang perangkat sudah diperbarui.' : '';
     openDialog('device-history-dialog');
     $('device-history-dialog').scrollTop = 0;
   }
   async function beginTransfer(id, options = {}) {
-    afterReturn = options.afterReturn || null;
+    if(!window.Akses.canWrite()||transferBusy)return;
+    const key=context(),seq=++transferRequest;
     const device = await repo.get(id);
+    if(seq!==transferRequest||!current(key)||!window.Akses.canWrite())return;
     if(options.employeeId && device.pemegang.employeeId !== options.employeeId) throw new Error('Pemegang HT sudah berubah. Tekan Periksa lagi pada pemeriksaan SKC.');
-    handoverId = id; handoverRevision = device.revision;
+    handoverId = id; handoverRevision = device.revision;afterReturn = options.afterReturn || null;
     $('handover-form').reset(); formError('handover-error', '');
     $('handover-kind').textContent = 'SERAH TERIMA ' + typeName(device.jenis).toUpperCase();
     $('handover-title').textContent = device.nomor; $('handover-brand').textContent = device.merek;
@@ -107,6 +132,7 @@
     $('handover-condition').value = device.kondisi;
     recipientPicker.setDisabled(false);
     await recipientPicker.load(options.returnToAdmin ? 'admin' : '', device.pemegang);
+    if(seq!==transferRequest||!current(key)||!window.Akses.canWrite())return;
     recipientPicker.setDisabled(!!options.returnToAdmin);
     openDialog('handover-dialog'); recipientPicker.focus();
   }
@@ -123,32 +149,42 @@
   $('device-history-transfer').addEventListener('click', () => beginTransfer(historyId).catch(error => showToast(error.message)));
   $('device-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = form.querySelector('[type=submit]');
-    if (!window.Akses.superAdmin() || !form.reportValidity() || button.disabled) return;
-    button.disabled = true;
+    if (!window.Akses.superAdmin() || !form.reportValidity() || button.disabled || deviceBusy) return;
+    const key=context(),seq=++deviceWrite,editing=editingDevice,data=Object.fromEntries(new FormData(form));
+    let holder;try{if(!editing)holder=initialPicker.read();}catch(error){formError('device-form-error',error.message);return;}
+    deviceBusy=true;busy('device-dialog',true);button.disabled = true;
     try {
-      const editing = editingDevice, data = Object.fromEntries(new FormData(form));
       if (editing) await repo.update(editing.id, { ...data, expectedRevision: editing.revision });
-      else await repo.create({ ...data, pemegang: initialPicker.read() });
-      window.FormGuard?.clean($('device-form')); closeDialog('device-dialog'); await refreshDevices(); resetFilters();
+      else await repo.create({ ...data, pemegang: holder });
+      if(seq!==deviceWrite||!current(key))return;
+      busy('device-dialog',false);
+      window.FormGuard?.clean($('device-form')); closeDialog('device-dialog'); await refreshDevices();
+      if(seq!==deviceWrite||!current(key))return;
+      resetFilters();
       document.dispatchEvent(new CustomEvent('devices:changed'));
       showToast(editing ? 'Data perangkat diperbarui.' : 'Perangkat ditambahkan dan disimpan.');
-    } catch (error) { formError('device-form-error', error.message); }
-    finally { button.disabled = false; }
+    } catch (error) { if(seq===deviceWrite&&current(key))formError('device-form-error', error.message); }
+    finally { if(seq===deviceWrite){deviceBusy=false;busy('device-dialog',false);button.disabled = false;} }
   });
   $('handover-form').addEventListener('submit', async event => {
     event.preventDefault(); const form = event.currentTarget, button = form.querySelector('[type=submit]');
-    if (!form.reportValidity() || button.disabled) return;
-    button.disabled = true;
+    if (!window.Akses.canWrite()||!form.reportValidity() || button.disabled||transferBusy||!handoverId) return;
+    const key=context(),seq=++transferWrite,id=handoverId,version=handoverRevision,data=Object.fromEntries(new FormData(form)),continuation=afterReturn;
+    let recipient;try{recipient=recipientPicker.read();}catch(error){formError('handover-error',error.message);return;}
+    transferBusy=true;busy('handover-dialog',true);button.disabled = true;
     try {
-      const device = await repo.handover(handoverId, { ...Object.fromEntries(new FormData(form)), penerima: recipientPicker.read(), expectedRevision: handoverRevision });
-      const continuation = afterReturn; afterReturn = null;
+      const device = await repo.handover(id, { ...data, penerima: recipient, expectedRevision: version });
+      if(seq!==transferWrite||!current(key))return;
+      afterReturn = null;busy('handover-dialog',false);
       window.FormGuard?.clean($('handover-form')); closeDialog('handover-dialog'); await refreshDevices();
+      if(seq!==transferWrite||!current(key))return;
       document.dispatchEvent(new CustomEvent('devices:changed'));
       if (continuation) await continuation(); else await showHistory(device.id, true);
-    } catch (error) { formError('handover-error', error.message); }
-    finally { button.disabled = false; }
+    } catch (error) { if(seq===transferWrite&&current(key))formError('handover-error', error.message); }
+    finally { if(seq===transferWrite){transferBusy=false;busy('handover-dialog',false);button.disabled = false;} }
   });
-  document.addEventListener('akses:berubah', () => { if (!window.Akses.superAdmin()) $('device-dialog').close(); });
+  document.addEventListener('akses:berubah', () => { const key=identity();if(key!==accessKey){accessKey=key;clearContext();} });
+  window.addEventListener('hashchange',clearContext);
   window.DeviceUI = Object.freeze({beginReturn:(id,employeeId,afterReturn)=>beginTransfer(id,{returnToAdmin:true,employeeId,afterReturn})});
   document.addEventListener('employees:changed', () => refreshDevices().catch(error => showToast(error.message)));
   window.addEventListener('hashchange',()=>refreshDevices().catch(error=>showToast(error.message)));

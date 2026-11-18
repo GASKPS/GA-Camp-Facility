@@ -226,8 +226,6 @@ begin
    if char_length(note)>3000 then raise exception 'Catatan maksimal 3000 karakter.';end if;
    if coalesce(item->>'tanggal_perpindahan','') !~ '^\d{4}-\d{2}-\d{2}$' then raise exception 'Isi tanggal perpindahan dengan format YYYY-MM-DD.';end if;
    move_date:=(item->>'tanggal_perpindahan')::date;
-   if move_date<coalesce(doc.perpindahan_terakhir,doc.tanggal_masuk) then raise exception 'Tanggal tidak boleh sebelum posisi terakhir.';end if;
-   if move_date>(now() at time zone 'Asia/Jayapura')::date then raise exception 'Tanggal tidak boleh setelah hari ini.';end if;
    perform public.catat_perpindahan_dokumen(p_id=>doc.id,p_versi=>doc.versi,p_data=>jsonb_build_object('tanggal_perpindahan',move_date,'tujuan',target,'status',state,'catatan',note));
    select * into strict doc from public.dokumen d where d.id=(item->>'id')::uuid;
    docs:=docs||jsonb_build_array(internal.tracking_receipt29(doc));

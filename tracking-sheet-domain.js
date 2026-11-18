@@ -17,7 +17,7 @@
    if(!Number.isInteger(data.versi)||data.versi<0)errors.conflict='Versi dokumen belum tersedia. Muat kembali daftar.';
    if(!data.tujuan)errors.tujuan='Isi tujuan atau pemegang baru.';else if(data.tujuan.length>140)errors.tujuan='Tujuan maksimal 140 karakter.';
    if(!data.status)errors.status='Pilih status yang tersedia.';
-   try{data.tanggal_perpindahan=I.date(row.tanggal);const min=doc?.perpindahanTerakhir||doc?.tanggalMasuk||draft.doc.perpindahanTerakhir||draft.doc.tanggalMasuk;if(min&&data.tanggal_perpindahan<min)errors.tanggal='Tanggal tidak boleh sebelum posisi terakhir.';if(data.tanggal_perpindahan>today)errors.tanggal='Tanggal tidak boleh setelah hari ini.';}catch(err){errors.tanggal=err.message;}
+   try{data.tanggal_perpindahan=I.date(row.tanggal);}catch(err){errors.tanggal=err.message;}
    if(data.catatan.length>3000)errors.catatan='Catatan maksimal 3000 karakter.';
    if(Object.keys(errors).length)issues.set(id,errors);
    entries.push({id,data});
