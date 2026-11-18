@@ -70,6 +70,10 @@
     const width = doc.internal.pageSize.getWidth(), height = doc.internal.pageSize.getHeight(), margin = 12;
     const tableWidth = width - margin * 2, right = width - margin;
     const ink = [28, 46, 62], muted = [65, 82, 97], border = [207, 216, 223];
+    const bodySize = 8, detailSize = 7.2, documentWidth = 56;
+    const padding = { top: 1.9, bottom: 1.9, left: 2.4, right: 2.4 };
+    const documentTextWidth = documentWidth - padding.left - padding.right;
+    const printedDocumentLines = new WeakMap();
     let logo;
     if (fonts.logo) {
       try {
@@ -84,30 +88,51 @@
       while (doc.getTextWidth(filterLines[2] + '...') > tableWidth) filterLines[2] = filterLines[2].slice(0, -1);
       filterLines[2] += '...';
     }
-    const top = 33 + filterLines.length * 4;
+    const top = 29 + filterLines.length * 4;
     function header() {
-      if (logo) doc.addImage(logo.source, 'JPEG', margin, 17 - logo.height / 2, logo.width, logo.height, 'ga-logo');
+      if (logo) doc.addImage(logo.source, 'JPEG', margin, 13 - logo.height / 2, logo.width, logo.height, 'ga-logo');
       const titleX = logo ? margin + logo.width + 6 : margin;
       doc.setFont('GA', 'bold').setFontSize(15).setTextColor(...ink);
-      doc.text('Tracking Dokumen Aktif', titleX, 16);
+      doc.text('Tracking Dokumen Aktif', titleX, 12);
       doc.setFont('GA', 'normal').setFontSize(8.5).setTextColor(...muted);
-      doc.text(logo ? 'Lembar serah terima' : 'GA Services | Lembar serah terima', titleX, 22);
-      doc.text('Dicetak: ' + printed, right, 16, { align: 'right' });
-      doc.text(rows.length.toLocaleString('id-ID') + ' dokumen aktif', right, 22, { align: 'right' });
-      doc.setDrawColor(...border).setLineWidth(0.2).line(margin, 26, right, 26);
-      doc.text(filterLines, margin, 31.5, { lineHeightFactor: 1.33 });
+      doc.text(logo ? 'Lembar serah terima' : 'GA Services | Lembar serah terima', titleX, 18);
+      doc.text('Dicetak: ' + printed, right, 12, { align: 'right' });
+      doc.text(rows.length.toLocaleString('id-ID') + ' dokumen aktif', right, 18, { align: 'right' });
+      doc.setDrawColor(...border).setLineWidth(0.2).line(margin, 22, right, 22);
+      doc.text(filterLines, margin, 27.5, { lineHeightFactor: 1.33 });
+    }
+    function documentLines(d) {
+      const number = String(d.nomorDokumen ?? '').trim(), code = String(d.kode ?? '').trim();
+      const meta = [number && 'No. ' + number, code && 'Kode: ' + code].filter(Boolean).join(' · ');
+      doc.setFont('GA', 'bold').setFontSize(bodySize);
+      const name = doc.splitTextToSize(text(d.namaDokumen), documentTextWidth);
+      doc.setFont('GA', 'normal').setFontSize(detailSize);
+      return { name, details: meta ? doc.splitTextToSize(meta, documentTextWidth) : [] };
+    }
+    function printDocument({ cell, row }, x) {
+      const { name, details } = row.raw.documentLines;
+      // AutoTable paginates the blank lines; draw the same slice with the intended fonts.
+      const start = printedDocumentLines.get(row.raw) || 0;
+      const end = Math.min(name.length + details.length, start + cell.text.length);
+      const fontHeight = bodySize / doc.internal.scaleFactor;
+      const lineHeight = fontHeight * doc.getLineHeightFactor();
+      let y = cell.y + cell.padding('top') + fontHeight * 0.85;
+      for (let i = start; i < end; i++, y += lineHeight) {
+        const title = i < name.length;
+        doc.setFont('GA', title ? 'bold' : 'normal').setFontSize(title ? bodySize : detailSize).setTextColor(...(title ? ink : muted));
+        doc.text(title ? name[i] : details[i - name.length], x, y);
+      }
+      printedDocumentLines.set(row.raw, end);
+      if (start === end && row.index < 0) {
+        doc.setFont('GA', 'normal').setFontSize(detailSize).setTextColor(...muted);
+        doc.text('Lanjutan catatan | No. ' + row.raw.no, x, y);
+      }
     }
     function printFields({ cell, column, row, section }) {
       if (section !== 'body') return;
       const x = cell.x + cell.padding('left');
-      // Identify a continued note without repeating the check box or signature lines.
-      if (row.index < 0) {
-        if (column.dataKey === 'document' && !cell.text.some(Boolean)) {
-          doc.setFont('GA', 'normal').setFontSize(7.4).setTextColor(...muted);
-          doc.text('Lanjutan catatan | No. ' + row.raw.no, x, cell.y + 5.3);
-        }
-        return;
-      }
+      if (column.dataKey === 'document') return printDocument({ cell, row }, x);
+      if (row.index < 0) return;
       if (column.dataKey === 'position') {
         const lineHeight = cell.styles.fontSize * doc.getLineHeightFactor() / doc.internal.scaleFactor;
         const y = cell.y + cell.padding('top') + lineHeight * cell.text.length + 0.8;
@@ -132,34 +157,38 @@
     doc.autoTable({
       startY: top, margin: { top, bottom: 17, left: margin, right: margin },
       tableWidth, showHead: 'everyPage', rowPageBreak: 'avoid', theme: 'grid',
-      styles: { font: 'GA', fontSize: 8.4, cellPadding: 2.6, overflow: 'linebreak', valign: 'top', textColor: ink, lineColor: border, lineWidth: 0.15 },
-      headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [236, 242, 246], textColor: ink, fontSize: 8 },
+      styles: { font: 'GA', fontSize: bodySize, cellPadding: padding, overflow: 'linebreak', valign: 'top', textColor: ink, lineColor: border, lineWidth: 0.15 },
+      headStyles: { font: 'GA', fontStyle: 'bold', fillColor: [236, 242, 246], textColor: ink, fontSize: 7.8 },
       alternateRowStyles: { fillColor: [255, 255, 255] },
       columns,
-      body: rows.map((d, i) => ({
-        no: String(i + 1),
-        document: [text(d.namaDokumen), [d.kode, d.nomorDokumen && 'No. ' + d.nomorDokumen].filter(Boolean).join(' | ')].filter(Boolean).join('\n'),
-        type: text(D.typeText(d)),
-        bu: text(d.bu),
-        position: text(d.posisiSekarang).replace(/\s+/g, ' '),
-        moved: Number(d.jumlahPerpindahan) === 0 && d.jumlahPerpindahan != null ? '-' : dateText(d.perpindahanTerakhir),
-        note: text(d.notePerpindahanTerakhir),
-        handover: ''
-      })),
+      body: rows.map((d, i) => {
+        const lines = documentLines(d);
+        return {
+          no: String(i + 1),
+          document: '\n'.repeat(lines.name.length + lines.details.length - 1),
+          documentLines: lines,
+          type: text(D.typeText(d)),
+          bu: text(d.bu),
+          position: text(d.posisiSekarang).replace(/\s+/g, ' '),
+          moved: Number(d.jumlahPerpindahan) === 0 && d.jumlahPerpindahan != null ? '-' : dateText(d.perpindahanTerakhir),
+          note: text(d.notePerpindahanTerakhir),
+          handover: ''
+        };
+      }),
       columnStyles: {
-        no: { cellWidth: 10, halign: 'center', cellPadding: { top: 2.6, bottom: 2.6, left: 1.4, right: 1.4 } },
-        document: { cellWidth: 56 },
+        no: { cellWidth: 10, halign: 'center', cellPadding: { ...padding, left: 1.4, right: 1.4 } },
+        document: { cellWidth: documentWidth, overflow: lines => lines },
         type: { cellWidth: 22 },
         bu: { cellWidth: 15 },
-        position: { cellWidth: 37, cellPadding: { top: 2.6, bottom: 7.1, left: 2.6, right: 2.6 } },
+        position: { cellWidth: 37, cellPadding: { ...padding, bottom: 6.4 } },
         moved: { cellWidth: 26 },
         note: { cellWidth: 58 },
         // Reserve two writing lines even on the first fragment of a long row.
-        handover: { cellWidth: tableWidth - 224, cellPadding: { top: 12.4, bottom: 0, left: 2.6, right: 2.6 }, minCellHeight: 16 }
+        handover: { cellWidth: tableWidth - 224, cellPadding: { ...padding, top: 11.5, bottom: 0 }, minCellHeight: 14.8 }
       },
       didParseCell({ section, cell, column }) {
         if (section === 'head' && column.dataKey === 'no') {
-          cell.styles.cellPadding = { top: 2.6, bottom: 2.6, left: 1.4, right: 1.4 };
+          cell.styles.cellPadding = { ...padding, left: 1.4, right: 1.4 };
           cell.styles.halign = 'center';
         }
       },
