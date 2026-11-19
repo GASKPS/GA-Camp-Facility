@@ -71,7 +71,8 @@
     const tableWidth = width - margin * 2, right = width - margin;
     const ink = [28, 46, 62], muted = [65, 82, 97], border = [207, 216, 223];
     const bodySize = 8, detailSize = 7.2, documentWidth = 56;
-    const padding = { top: 1.9, bottom: 1.9, left: 2.4, right: 2.4 };
+    const padding = { top: 1.4, bottom: 1.4, left: 1.8, right: 1.8 };
+    const pickupBoxSize = 3, pickupGap = 0.4;
     const documentTextWidth = documentWidth - padding.left - padding.right;
     const printedDocumentLines = new WeakMap();
     let logo;
@@ -139,7 +140,7 @@
         doc.text('Tanda tangan', signatureX, y);
         return;
       }
-      const y = cell.y + cell.padding('top') + 7;
+      const y = cell.y + cell.padding('top') + 6.2;
       doc.setDrawColor(...muted).setLineWidth(0.16);
       doc.line(x, y, signatureX - 2.5, y);
       doc.line(signatureX, y, end, y);
@@ -155,10 +156,10 @@
       if (row.index < 0) return;
       if (column.dataKey === 'position') {
         const lineHeight = cell.styles.fontSize * doc.getLineHeightFactor() / doc.internal.scaleFactor;
-        const y = cell.y + cell.padding('top') + lineHeight * cell.text.length + 0.8;
-        doc.setDrawColor(...muted).setLineWidth(0.25).rect(x, y, 3.6, 3.6, 'S');
-        doc.setFont('GA', 'normal').setFontSize(7.4).setTextColor(...muted);
-        doc.text('Sudah diambil', x + 5.1, y + 2.8);
+        const y = cell.y + cell.padding('top') + lineHeight * cell.text.length + pickupGap;
+        doc.setDrawColor(...muted).setLineWidth(0.22).rect(x, y, pickupBoxSize, pickupBoxSize, 'S');
+        doc.setFont('GA', 'normal').setFontSize(7).setTextColor(...muted);
+        doc.text('Sudah diambil', x + pickupBoxSize + 1, y + 2.3);
       }
     }
     doc.autoTable({
@@ -187,10 +188,10 @@
         document: { cellWidth: documentWidth, overflow: lines => lines },
         type: { cellWidth: 22 },
         bu: { cellWidth: 15 },
-        position: { cellWidth: 37, cellPadding: { ...padding, bottom: 6.4 } },
+        position: { cellWidth: 37, cellPadding: { ...padding, bottom: pickupBoxSize + pickupGap + 1.2 } },
         moved: { cellWidth: 26 },
         note: { cellWidth: 58 },
-        handover: { cellWidth: tableWidth - 224, minCellHeight: 11.5 }
+        handover: { cellWidth: tableWidth - 224, minCellHeight: 9.6 }
       },
       didParseCell({ section, cell, column }) {
         if (section !== 'head') return;
