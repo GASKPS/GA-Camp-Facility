@@ -138,7 +138,7 @@
     $('download-active-pdf').hidden = tab !== 'active';
     $('download-pdf-status').hidden = true;
     ['document-filters','document-results','document-footer','document-stats','tracking-add-document','tracking-input-options'].forEach(id => { $(id).hidden = skc; });
-    $('skc-panel').hidden = !skc; $('tracking-add-skc').hidden = !skc;
+    $('skc-panel').hidden = !skc; $('tracking-skc-actions').hidden = !skc;
     $('tracking-description').textContent = skc ? 'Catat pengambilan surat keterangan cuti karyawan.' : 'Pantau posisi dokumen dan setiap perpindahannya.';
     $('tracking-list-caption').textContent = skc ? 'Surat keterangan cuti' : 'Daftar dokumen';
     if (!skc) { $('document-results').setAttribute('aria-labelledby', tab === 'active' ? 'tab-active' : 'tab-done'); fillStatuses(); }
@@ -193,15 +193,18 @@
   }
   $('download-active-pdf').addEventListener('click', async () => {
     if (exportingPdf || tab !== 'active' || !window.Akses.profile) return;
-    const selectedFilters = filters(), label = $('download-pdf-label'), report = $('download-pdf-status');
+    const selectedFilters = filters(), context=contextKey(), label = $('download-pdf-label'), report = $('download-pdf-status');
     exportingPdf = true; label.textContent = 'Menyiapkan PDF…'; report.hidden = true; render();
     try {
-      const [fresh, fonts] = await Promise.all([repository.pdfList(selectedFilters), window.TrackingPDF.ready()]);
-      const result = window.TrackingPDF.create(fresh, selectedFilters, fonts);
+      const [fresh, fonts, leave] = await Promise.all([
+        repository.pdfList(selectedFilters), window.TrackingPDF.ready(), window.SkcStore.tomorrow(selectedFilters.office)
+      ]);
+      if(!currentContext(context)||tab!=='active')return;
+      const result = window.TrackingPDF.create(fresh, selectedFilters, fonts, leave.at, leave.names);
       await result.doc.save(result.filename, { returnPromise: true });
-      report.textContent = result.count.toLocaleString('id-ID') + ' dokumen aktif siap diunduh sebagai PDF.';
-    } catch (error) { report.textContent = error.message || 'PDF belum dapat dibuat. Coba lagi.'; }
-    finally { exportingPdf = false; label.textContent = 'Unduh PDF'; report.hidden = tab !== 'active'; render(); }
+      if(currentContext(context)&&tab==='active')report.textContent = result.count.toLocaleString('id-ID') + ' dokumen aktif siap diunduh sebagai PDF.';
+    } catch (error) { if(currentContext(context)&&tab==='active')report.textContent = error.message || 'PDF belum dapat dibuat. Coba lagi.'; }
+    finally { exportingPdf = false; label.textContent = 'Unduh PDF'; report.hidden = !currentContext(context)||tab !== 'active'; render(); }
   });
   ['search','filter-bu','filter-status','filter-office','filter-from','filter-to'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', () => { listRequest++;documentPage=1;clearTimeout(filterTimer);filterTimer=setTimeout(()=>refresh().catch(error=>showToast(error.message)),id==='search'?300:0); }));
   function resetFilters() { documentPage = 1; $('search').value = ''; $('filter-bu').value = ''; $('filter-status').value = ''; $('filter-office').value=window.Akses.administrator()?'':(window.Akses.profile?.office_id||''); $('filter-from').value=''; $('filter-to').value=''; refresh().catch(error=>showToast(error.message)); }

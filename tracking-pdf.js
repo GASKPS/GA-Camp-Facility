@@ -48,7 +48,7 @@
     })().catch(error => { dependencies = null; throw error; });
     return dependencies;
   }
-  function create(records, filters = {}, fonts, generatedAt = new Date()) {
+  function create(records, filters = {}, fonts, generatedAt = new Date(), leaveNames = []) {
     const D = g.TrackingDomain, rows = D.filterDocuments(records, filters, false);
     if (!rows.length) throw new Error('Tidak ada dokumen aktif yang sesuai filter untuk diunduh.');
     const doc = new g.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true, putOnlyUsedFonts: true });
@@ -204,6 +204,22 @@
       },
       didDrawCell: printFields, willDrawPage: header
     });
+    const names=leaveNames.map(n=>String(n).replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+    if(names.length){
+      const label='Cuti Besok', labelWidth=22, fontSize=8, step=3.5, bottom=height-14.5;
+      doc.setFont('GA','normal').setFontSize(fontSize);
+      const lines=doc.splitTextToSize(names.join(' · '),tableWidth-labelWidth);
+      let y=doc.lastAutoTable.finalY+4.5;
+      function leavePage(){doc.addPage();header();y=top+2;}
+      if(y>bottom)leavePage();
+      doc.setFont('GA','bold').setFontSize(fontSize).setTextColor(...ink);
+      doc.text(label,margin,y);
+      for(const line of lines){
+        if(y>bottom)leavePage();
+        doc.setFont('GA','normal').setFontSize(fontSize).setTextColor(...ink);
+        doc.text(line,margin+labelWidth,y);y+=step;
+      }
+    }
     const total = doc.getNumberOfPages();
     for (let page = 1; page <= total; page++) {
       doc.setPage(page).setFont('GA', 'normal').setFontSize(8).setTextColor(...muted);

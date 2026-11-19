@@ -34,7 +34,7 @@ function files(snapshot,only=[]){
  book('Tracking_Dokumen.xlsx',[
  ['Aktif',d.dokumen.filter(v=>!final(v)),docCols],['Selesai',d.dokumen.filter(final),docCols],
  ['Riwayat',d.perpindahan_dokumen,[['ID','id'],['ID dokumen','dokumen_id'],['Kode dokumen',v=>docs.get(v.dokumen_id)?.kode||''],['Urutan','urutan'],['Tanggal',v=>date(v.tanggal_perpindahan)],['Dari','posisi_sebelum'],['Tujuan','tujuan'],['Status','status'],['Note Perpindahan','catatan'],['Dicatat oleh','nama_petugas'],['Waktu input',v=>stamp(v.dicatat_pada)]]]]);
- const skcCols=[['ID','id'],['NIK',v=>employees.get(v.karyawan_id)?.nik||v.nik_pengambil||''],['Nama',v=>employees.get(v.karyawan_id)?.nama||v.nama_pengambil||''],['Tanggal cuti',v=>date(v.tanggal_cuti)],['Status','status'],['Tanggal diambil',v=>date(v.tanggal_diambil)],['Nama pengambil','nama_pengambil'],['Dicatat pengambilan oleh','nama_petugas_pengambilan'],['Link Form Cuti','link_form_cuti'],['Link Exit','link_exit']];
+ const skcCols=[['ID','id'],['NIK',v=>employees.get(v.karyawan_id)?.nik||v.nik_pengambil||''],['Nama',v=>employees.get(v.karyawan_id)?.nama||v.nama_pengambil||''],['Tanggal cuti',v=>date(v.tanggal_cuti)],['Note','note'],['Status','status'],['Tanggal diambil',v=>date(v.tanggal_diambil)],['Nama pengambil','nama_pengambil'],['Dicatat pengambilan oleh','nama_petugas_pengambilan']];
  const skc=[...d.pengambilan_skc].sort((a,b)=>a.tanggal_cuti.localeCompare(b.tanggal_cuti));
  book('Data_SKC.xlsx',[['Belum diambil',skc.filter(v=>v.status==='Belum diambil'),skcCols],['Sudah diambil',skc.filter(v=>v.status==='Sudah diambil'),skcCols]]);
  book('Tamu_dan_Catatan.xlsx',[
