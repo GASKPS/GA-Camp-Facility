@@ -128,7 +128,27 @@
         doc.text('Lanjutan catatan | No. ' + row.raw.no, x, y);
       }
     }
+    function printHandover(cell, section) {
+      const x = cell.x + cell.padding('left');
+      const end = cell.x + cell.width - cell.padding('right'), signatureX = end - 17.5;
+      if (section === 'head') {
+        // Keep labels in the repeated header to leave more room for handwriting.
+        const y = cell.y + cell.height - cell.padding('bottom') - 0.2;
+        doc.setFont('GA', 'normal').setFontSize(detailSize).setTextColor(...muted);
+        doc.text('Nama penerima', x, y);
+        doc.text('Tanda tangan', signatureX, y);
+        return;
+      }
+      const y = cell.y + cell.padding('top') + 7;
+      doc.setDrawColor(...muted).setLineWidth(0.16);
+      doc.line(x, y, signatureX - 2.5, y);
+      doc.line(signatureX, y, end, y);
+    }
     function printFields({ cell, column, row, section }) {
+      if (column.dataKey === 'handover') {
+        if (section === 'head' || (section === 'body' && row.index >= 0)) printHandover(cell, section);
+        return;
+      }
       if (section !== 'body') return;
       const x = cell.x + cell.padding('left');
       if (column.dataKey === 'document') return printDocument({ cell, row }, x);
@@ -139,19 +159,6 @@
         doc.setDrawColor(...muted).setLineWidth(0.25).rect(x, y, 3.6, 3.6, 'S');
         doc.setFont('GA', 'normal').setFontSize(7.4).setTextColor(...muted);
         doc.text('Sudah diambil', x + 5.1, y + 2.8);
-      } else if (column.dataKey === 'handover') {
-        doc.setFont('GA', 'normal').setFontSize(7.4).setTextColor(...muted);
-        doc.setDrawColor(...muted).setLineWidth(0.16);
-        const end = cell.x + cell.width - cell.padding('right');
-        const lineStart = (label, start) => start + doc.getTextWidth(label) + 1.1;
-        const field = (label, start, stop, y) => {
-          doc.text(label, start, y);
-          doc.line(lineStart(label, start), y + 0.7, stop, y + 0.7);
-        };
-        const dateEnd = lineStart('Tgl:', x) + 18.5;
-        field('Nama:', x, end, cell.y + 5.4);
-        field('Tgl:', x, dateEnd, cell.y + 11.6);
-        field('Paraf:', dateEnd + 2, end, cell.y + 11.6);
       }
     }
     doc.autoTable({
@@ -183,13 +190,15 @@
         position: { cellWidth: 37, cellPadding: { ...padding, bottom: 6.4 } },
         moved: { cellWidth: 26 },
         note: { cellWidth: 58 },
-        // Reserve two writing lines even on the first fragment of a long row.
-        handover: { cellWidth: tableWidth - 224, cellPadding: { ...padding, top: 11.5, bottom: 0 }, minCellHeight: 14.8 }
+        handover: { cellWidth: tableWidth - 224, minCellHeight: 11.5 }
       },
       didParseCell({ section, cell, column }) {
-        if (section === 'head' && column.dataKey === 'no') {
+        if (section !== 'head') return;
+        if (column.dataKey === 'no') {
           cell.styles.cellPadding = { ...padding, left: 1.4, right: 1.4 };
           cell.styles.halign = 'center';
+        } else if (column.dataKey === 'handover') {
+          cell.styles.minCellHeight = 10.1;
         }
       },
       didDrawCell: printFields, willDrawPage: header
