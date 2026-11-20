@@ -1,6 +1,5 @@
-/* Turnstile is enforced by Supabase Auth, not by this browser counter.
- * The account counter below is a local UX delay, NOT a server account lock.
- * Managed Supabase Free has no password-attempt hook for a global failure count.
+/* Password login is the default. Turnstile runs only after explicit opt-in.
+ * The account counter is a local delay in both modes, not a server account lock.
  */
 (function (g) {
   'use strict';
@@ -10,8 +9,9 @@
   function create({project,onChange=()=>{}}) {
     const $ = id => document.getElementById(id);
     const prefix = 'ga.login35.6:' + new URL(project).host + ':';
+    const turnstileEnabled = g.LOGIN_GA?.turnstileEnabled === true;
     const sitekey = String(g.LOGIN_GA?.siteKeyTurnstile || '').trim();
-    const configured = /^[A-Za-z0-9_-]{15,128}$/.test(sitekey) && !/^(?:[123]x0|ISI_|YOUR_)/i.test(sitekey);
+    const configured = /^[A-Za-z0-9_-]{15,128}$/.test(sitekey) && !/^(?:[123]x0|ISI_|YOUR_|SITE_KEY_)/i.test(sitekey);
     const memory = new Map();
     let active=false, destroyed=false, account='', key='', accountVersion=0;
     let state='idle', note='', token='', tokenAt=0, widget=null, widgetVersion=0;
@@ -52,9 +52,9 @@
       if(destroyed)return;
       currentToken();
       const wait=remaining(), panel=$('auth-verification'), status=$('auth-verification-status'), warning=$('auth-wait'), retry=$('auth-verification-retry');
-      if(panel)panel.hidden=!active;
+      if(panel)panel.hidden=!active||!turnstileEnabled;
       if(status){status.textContent=note;status.hidden=!note;status.dataset.state=state;}
-      if(retry)retry.hidden=!active||!retryVisible||wait>0;
+      if(retry)retry.hidden=!active||!turnstileEnabled||!retryVisible||wait>0;
       if(warning){warning.hidden=!active||wait===0;warning.textContent=wait?(serverUntil()?'Terlalu banyak permintaan. Tunggu '+duration(wait)+' sebelum mencoba lagi.':'Percobaan berulang pada akun ini. Tunggu '+duration(wait)+' sebelum mencoba lagi.') : '';}
       onChange();
     }
@@ -102,7 +102,7 @@
       return loader;
     }
     async function render() {
-      if(!active||destroyed)return;
+      if(!active||destroyed||!turnstileEnabled)return;
       removeWidget();const seq=widgetVersion;
       retryVisible=false;
       if(!configured){state='unconfigured';note='Verifikasi keamanan belum disiapkan. Hubungi Administrator.';sync();return;}
@@ -128,7 +128,11 @@
     }
     function activate() {
       if(destroyed)return;
-      if(!active){active=true;timer=g.setInterval(sync,1000);void render();}
+      if(!active){
+        active=true;timer=g.setInterval(sync,1000);
+        if(turnstileEnabled)void render();
+        else state='ready';
+      }
       sync();
     }
     function deactivate() {
@@ -138,10 +142,12 @@
       const value=String(email||'').trim().toLowerCase();
       if(value!==account||!key)await setAccount(value);
       sync();
-      if(!active||!configured)throw new Error('Verifikasi keamanan belum siap. Hubungi Administrator.');
+      if(!active||destroyed)throw new Error('Login belum siap. Muat ulang halaman.');
+      if(state==='submitting')throw new Error('Login sedang diproses.');
       if(remaining())throw new Error('Tunggu hingga jeda percobaan selesai.');
-      if(!currentToken())throw new Error('Selesaikan verifikasi keamanan sebelum masuk.');
-      const ticket={key,email:value,captchaToken:token};
+      if(turnstileEnabled&&!configured)throw new Error('Verifikasi keamanan belum siap. Hubungi Administrator.');
+      if(turnstileEnabled&&!currentToken())throw new Error('Selesaikan verifikasi keamanan sebelum masuk.');
+      const ticket={key,email:value,captchaToken:turnstileEnabled?token:''};
       // Consume the token before sending: double submit cannot reuse it.
       token='';tokenAt=0;state='submitting';note='';sync();
       return ticket;
@@ -155,15 +161,20 @@
         const seconds=Number(error?.retryAfter), wait=Number.isFinite(seconds)&&seconds>0?Math.min(300,Math.max(1,Math.ceil(seconds)))*1000:SERVER_WAIT;
         write(prefix+'request-wait',Math.max(serverUntil(),now()+wait));
       }
-      if(active)await render();sync();
+      if(active){
+        if(turnstileEnabled)await render();
+        else state='ready';
+      }
+      sync();
     }
     function success(ticket) {remove(ticket.key);deactivate();}
     function storage(event) {if(event.key===null||event.key?.startsWith(prefix))sync();}
-    const retry=()=>{if(active&&!remaining())void render();};
+    const retry=()=>{if(active&&turnstileEnabled&&!remaining())void render();};
     $('auth-verification-retry')?.addEventListener('click',retry);
     g.addEventListener('storage',storage);
     return Object.freeze({activate,deactivate,setAccount,begin,failure,success,
-      get canSubmit(){return active&&configured&&!!currentToken()&&!remaining();},
+      get canSubmit(){return active&&state!=='submitting'&&(!turnstileEnabled||(configured&&!!currentToken()))&&!remaining();},
+      get turnstileEnabled(){return turnstileEnabled;},
       get waitSeconds(){return remaining();},get status(){return state;},
       destroy(){deactivate();destroyed=true;accountVersion++;g.removeEventListener('storage',storage);$('auth-verification-retry')?.removeEventListener('click',retry);}
     });

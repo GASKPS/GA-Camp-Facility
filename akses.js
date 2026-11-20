@@ -23,7 +23,9 @@
   const administrator = () => !!state.profile?.aktif && state.profile.peran === 'administrator';
   const errorText = error => {
     if(error?.code==='invalid_credentials')return 'Email atau password tidak sesuai.';
-    if(error?.code==='captcha_failed')return 'Verifikasi keamanan belum berhasil. Ulangi verifikasi lalu coba lagi.';
+    if(error?.code==='captcha_failed')return loginProtection?.turnstileEnabled
+      ? 'Verifikasi keamanan belum berhasil. Ulangi verifikasi lalu coba lagi.'
+      : 'Supabase masih meminta CAPTCHA. Hubungi Administrator untuk memeriksa pengaturan login.';
     if(error?.status===429||error?.code==='over_request_rate_limit')return 'Terlalu banyak permintaan. Tunggu sebentar sebelum mencoba lagi.';
     if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError')) return 'Koneksi terputus. Periksa internet lalu coba kembali.';
     if (['PGRST205','42P01','PGRST202'].includes(error?.code)) return 'Database belum lengkap. Jalankan SQL pemasangan pada proyek Supabase baru.';
@@ -81,7 +83,7 @@
       catch { throw new Error('Kunci lama harus berjenis anon. Jangan gunakan service_role key.'); }
     }
     state.configured = true;
-    if(!g.GALogin?.create)throw new Error('Komponen verifikasi belum dapat dimuat. Muat ulang halaman.');
+    if(!g.GALogin?.create)throw new Error('Komponen login belum dapat dimuat. Muat ulang halaman.');
     loginProtection=g.GALogin.create({project:url.origin,onChange:syncLoginButton});
     $('login-email').addEventListener('input',()=>{void loginProtection.setAccount($('login-email').value);});
     $('login-email').addEventListener('change',()=>{void loginProtection.setAccount($('login-email').value);});
@@ -177,7 +179,9 @@
     try {
       await ready; if(!state.client) throw new Error('Koneksi belum siap. Periksa konfigurasi Supabase.');
       ticket=await loginProtection.begin(email);
-      const {data,error}=await state.client.auth.signInWithPassword({email,password,options:{captchaToken:ticket.captchaToken}});
+      const credentials={email,password};
+      if(ticket.captchaToken)credentials.options={captchaToken:ticket.captchaToken};
+      const {data,error}=await state.client.auth.signInWithPassword(credentials);
       ticket.captchaToken='';
       if(error){await loginProtection.failure(ticket,error);throw error;}
       loginProtection.success(ticket);
